@@ -16,6 +16,8 @@ github.com/jung-kurt/gofpdf v1.0.0/go.mod h1:7Id9E/uU8ce6rXgefFLlgrJj/GYY22cpxn+
 github.com/kisielk/errcheck v1.2.0/go.mod h1:/BMXB+zMLi60iA8Vv6Ksmxu/1UDYcXs4uQLJ+jE2L00=
 github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI2bnpBCr8=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
+github.com/kshedden/gonpy v0.0.0-20210519231815-fa3c8dd8e59b h1:1Xm63EZszlHGYGKMq1aQc88ZllG0DCv/6S9mpKp+U7Y=
+github.com/kshedden/gonpy v0.0.0-20210519231815-fa3c8dd8e59b/go.mod h1:+uEXxXG0RlfBPqG1tq5QN/F2jRlcuY0dExSONLpEwcA=
 github.com/llgcode/draw2d v0.0.0-20180124133339-274031cf2abe/go.mod h1:th5ThsEAha37D8D9FbfhLvGuf04dR1aM0mgdYs+XHto=
 github.com/llgcode/draw2d v0.0.0-20200930101115-bfaf5d914d1e/go.mod h1:mVa0dA29Db2S4LVqDYLlsePDzRJLDfdhVZiI15uY0FA=
 github.com/llgcode/ps v0.0.0-20150911083025-f1443b32eedb/go.mod h1:1l8ky+Ew27CMX29uG+a2hNOKpeNYEQjjtiALiBlFQbY=
