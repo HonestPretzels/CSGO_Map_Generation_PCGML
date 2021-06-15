@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/kshedden/gonpy"
@@ -40,8 +42,8 @@ const (
 	Incendiary
 	Smoke
 	Decoy
-	PlantedBomb // TODO
-	DefusedBomb // TODO
+	PlantedBomb
+	DefusedBomb
 )
 
 func generatePlayerMap(state dem.GameState) map[string]int {
@@ -107,22 +109,20 @@ func Flatten(arr [][][]float64) []float64 {
 	return out
 }
 
-func main() {
-	f, err := os.Open("E:/Projects/GRAIL_PCGML_tmaurer_summer_2021/csgo/logs/demos/1-0ad04954-9047-41d7-8a2b-1898ac25de65.dem")
+func ParseOneDemo(demoPath string, outputPath string) {
+	f, err := os.Open(demoPath)
 	if err != nil {
 		panic(err)
 	}
 	defer f.Close()
-
 	p := dem.NewParser(f)
 	defer p.Close()
 
-	// 10 Players
-	// 2700 = 45 minutes * 60 seconds
-	// vector length for state = 23
+	// Initialize to a 10 x 1 x 23 array
+	// 10 players, 1 second, 23 state points
 	demoVector := make([][][]float64, 10)
 	for i := range demoVector {
-		demoVector[i] = make([][]float64, 2700)
+		demoVector[i] = make([][]float64, 1)
 		for j := range demoVector[i] {
 			demoVector[i][j] = make([]float64, 23)
 		}
@@ -228,33 +228,50 @@ func main() {
 
 	// PARSE UP TO 45 Minutes
 	startTime := p.CurrentTime()
-out:
-	for second = 0; second < 2700; second++ {
-		for p.CurrentTime()-startTime < time.Second {
-			EoF, err := p.ParseNextFrame()
-			if err != nil {
-				panic(err)
+	for moreFrames := true; moreFrames; moreFrames, err = p.ParseNextFrame() {
+		if p.CurrentTime()-startTime >= time.Second {
+			for i := range demoVector {
+				demoVector[i] = append(demoVector[i], make([]float64, 23))
 			}
-			if !EoF {
-				break out
+			second += 1
+			startTime = p.CurrentTime()
+
+			players := p.GameState().Participants().Playing()
+			for i := 0; i < len(players); i++ {
+				p := players[i]
+				idx := playerMap[p.Name]
+
+				// Store pos and velocity
+				updatePlayerState(p, second, idx, demoVector)
+
 			}
 		}
-		// One second has passed, get all data necessary
-		players := p.GameState().Participants().Playing()
-		for i := 0; i < len(players); i++ {
-			p := players[i]
-			idx := playerMap[p.Name]
-
-			// Store pos and velocity
-			updatePlayerState(p, second, idx, demoVector)
-
+		if err != nil {
+			panic(err)
 		}
-
-		startTime = p.CurrentTime()
 	}
-	writer, _ := gonpy.NewFileWriter("test.npy")
+
+	writer, _ := gonpy.NewFileWriter(outputPath)
 	shape := []int{10, 2700, 23}
 	writer.Shape = shape
 	writer.Version = 2
 	_ = writer.WriteFloat64(Flatten(demoVector))
+}
+
+func main() {
+	var demos []string
+	root := "E:/Projects/GRAIL_PCGML_tmaurer_summer_2021/csgo"
+	err := filepath.Walk(root+"/logs/demos/", func(path string, info os.FileInfo, err error) error {
+		demos = append(demos, path)
+		return nil
+	})
+	if err != nil {
+		panic(err)
+	}
+	for _, file := range demos[1:] {
+		var extension = filepath.Ext(file)
+		output := root + "/vectors/" + filepath.Base(file)[0:len(filepath.Base(file))-len(extension)] + ".npy"
+		fmt.Println(output)
+		ParseOneDemo(file, output)
+	}
 }
