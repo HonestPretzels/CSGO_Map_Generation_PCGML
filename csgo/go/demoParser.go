@@ -252,7 +252,7 @@ func ParseOneDemo(demoPath string, outputPath string) {
 	}
 
 	writer, _ := gonpy.NewFileWriter(outputPath)
-	shape := []int{10, 2700, 23}
+	shape := []int{10, len(demoVector[0]), 23}
 	writer.Shape = shape
 	writer.Version = 2
 	_ = writer.WriteFloat64(Flatten(demoVector))
