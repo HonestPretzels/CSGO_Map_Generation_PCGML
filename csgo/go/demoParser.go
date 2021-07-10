@@ -12,6 +12,14 @@ import (
 	"github.com/markus-wa/demoinfocs-golang/v2/pkg/demoinfocs/events"
 )
 
+// OUTPUT OF THIS PROGRAM IS A SERIES OF 2 NUMPY FILES PER DEMO
+// 1. A log file, this contains the sequence data of what occured in the game. a vector of dimensions length x 10 x 23
+//    the length is the number of seconds in the match, 10 is the number of players, with the first 5 being considered team 1
+//    and the second 5 being considered team 2.
+// 2. A round file, this contains the sequence of round outcomes. A vector of num. rounds x 2 where the first of the two is
+//    the second that the round ended, and the second of the 2 is whether team 1 won or not. This includes an extra round at the
+//    beginning for the knife round and a round at the end as padding which can be ignored.
+
 //TODO:
 // - Use arguments for input and output path of demo
 // - Parse maps somehow
@@ -70,28 +78,28 @@ func boolToFloat(x bool) float64 {
 
 func updatePlayerState(player *common.Player, second int, idx int, demoVector [][][]float64) {
 	// Postion
-	demoVector[idx][second][PosX] = player.Position().X
-	demoVector[idx][second][PosY] = player.Position().Y
-	demoVector[idx][second][PosZ] = player.Position().Z
+	demoVector[second][idx][PosX] = player.Position().X
+	demoVector[second][idx][PosY] = player.Position().Y
+	demoVector[second][idx][PosZ] = player.Position().Z
 	// Velocity
-	demoVector[idx][second][VelocityX] = player.Velocity().X
-	demoVector[idx][second][VelocityY] = player.Velocity().Y
-	demoVector[idx][second][VelocityZ] = player.Velocity().Z
+	demoVector[second][idx][VelocityX] = player.Velocity().X
+	demoVector[second][idx][VelocityY] = player.Velocity().Y
+	demoVector[second][idx][VelocityZ] = player.Velocity().Z
 	// View
-	demoVector[idx][second][ViewX] = float64(player.ViewDirectionX())
-	demoVector[idx][second][ViewY] = float64(player.ViewDirectionY())
+	demoVector[second][idx][ViewX] = float64(player.ViewDirectionX())
+	demoVector[second][idx][ViewY] = float64(player.ViewDirectionY())
 	// Health
-	demoVector[idx][second][Health] = float64(player.Health())
+	demoVector[second][idx][Health] = float64(player.Health())
 	// Active Weapon
 	if player.ActiveWeapon() != nil {
-		demoVector[idx][second][ActiveWeapon] = float64(player.ActiveWeapon().Type)
+		demoVector[second][idx][ActiveWeapon] = float64(player.ActiveWeapon().Type)
 	}
 	// Blind
-	demoVector[idx][second][Blind] = boolToFloat(player.IsBlinded())
+	demoVector[second][idx][Blind] = boolToFloat(player.IsBlinded())
 	// Scoped
-	demoVector[idx][second][Scoped] = boolToFloat(player.IsScoped())
+	demoVector[second][idx][Scoped] = boolToFloat(player.IsScoped())
 	// Crouched
-	demoVector[idx][second][Crouched] = boolToFloat(player.IsDucking() || player.IsDuckingInProgress())
+	demoVector[second][idx][Crouched] = boolToFloat(player.IsDucking() || player.IsDuckingInProgress())
 }
 
 func Flatten(arr [][][]float64) []float64 {
@@ -109,7 +117,29 @@ func Flatten(arr [][][]float64) []float64 {
 	return out
 }
 
-func ParseOneDemo(demoPath string, outputPath string) {
+func Flatten2D(arr [][]int16) []int16 {
+	out := make([]int16, len(arr)*len(arr[0]))
+	width := len(arr[0])
+	for i := range arr {
+		for j := range arr[i] {
+			idx := i*width + j
+			out[idx] = arr[i][j]
+		}
+	}
+	return out
+}
+
+func validMap(mapName string) bool {
+	validMaps := []string{"de_dust2", "de_inferno", "de_mirage", "de_overpass", "de_train", "de_vertigo"}
+	for i := range validMaps {
+		if validMaps[i] == mapName {
+			return true
+		}
+	}
+	return false
+}
+
+func ParseOneDemo(demoPath string, outputPath string, roundOutput string) {
 	f, err := os.Open(demoPath)
 	if err != nil {
 		panic(err)
@@ -117,12 +147,25 @@ func ParseOneDemo(demoPath string, outputPath string) {
 	defer f.Close()
 	p := dem.NewParser(f)
 	defer p.Close()
+	p.ParseHeader()
 
-	// Initialize to a 10 x 1 x 23 array
-	// 10 players, 1 second, 23 state points
-	demoVector := make([][][]float64, 10)
+	if !validMap(p.Header().MapName) {
+		fmt.Println(p.Header().MapName + " is not a valid map")
+		return
+	}
+
+	roundVector := make([][]int16, 1)
+	for i := range roundVector {
+		roundVector[i] = make([]int16, 2)
+	}
+	var round int
+	round = 0
+
+	// Initialize to a 1 x 10 x 23 array
+	// 1 second, 10 players, 23 state points
+	demoVector := make([][][]float64, 1)
 	for i := range demoVector {
-		demoVector[i] = make([][]float64, 1)
+		demoVector[i] = make([][]float64, 10)
 		for j := range demoVector[i] {
 			demoVector[i][j] = make([]float64, 23)
 		}
@@ -154,21 +197,21 @@ func ParseOneDemo(demoPath string, outputPath string) {
 
 				switch e.Weapon.Type {
 				case common.EqIncendiary:
-					demoVector[idx][second][Incendiary] = boolToFloat(true)
+					demoVector[second][idx][Incendiary] = boolToFloat(true)
 				case common.EqMolotov:
-					demoVector[idx][second][Incendiary] = boolToFloat(true)
+					demoVector[second][idx][Incendiary] = boolToFloat(true)
 				case common.EqSmoke:
-					demoVector[idx][second][Smoke] = boolToFloat(true)
+					demoVector[second][idx][Smoke] = boolToFloat(true)
 				case common.EqHE:
-					demoVector[idx][second][Grenade] = boolToFloat(true)
+					demoVector[second][idx][Grenade] = boolToFloat(true)
 				case common.EqFlash:
-					demoVector[idx][second][Flash] = boolToFloat(true)
+					demoVector[second][idx][Flash] = boolToFloat(true)
 				case common.EqDecoy:
-					demoVector[idx][second][Decoy] = boolToFloat(true)
+					demoVector[second][idx][Decoy] = boolToFloat(true)
 				}
 				// Guns
 			} else {
-				demoVector[idx][second][Shooting] = boolToFloat(true)
+				demoVector[second][idx][Shooting] = boolToFloat(true)
 
 			}
 		}
@@ -184,7 +227,7 @@ func ParseOneDemo(demoPath string, outputPath string) {
 		} else {
 			return
 		}
-		demoVector[idx][second][Jumped] = boolToFloat(true)
+		demoVector[second][idx][Jumped] = boolToFloat(true)
 	})
 
 	// Handle Reloads
@@ -197,7 +240,7 @@ func ParseOneDemo(demoPath string, outputPath string) {
 		} else {
 			return
 		}
-		demoVector[idx][second][Reloaded] = boolToFloat(true)
+		demoVector[second][idx][Reloaded] = boolToFloat(true)
 	})
 
 	// Handle Bomb Defuses
@@ -210,7 +253,7 @@ func ParseOneDemo(demoPath string, outputPath string) {
 		} else {
 			return
 		}
-		demoVector[idx][second][DefusedBomb] = boolToFloat(true)
+		demoVector[second][idx][DefusedBomb] = boolToFloat(true)
 	})
 
 	// Handle Bomb Plants
@@ -223,17 +266,46 @@ func ParseOneDemo(demoPath string, outputPath string) {
 		} else {
 			return
 		}
-		demoVector[idx][second][PlantedBomb] = boolToFloat(true)
+		demoVector[second][idx][PlantedBomb] = boolToFloat(true)
 	})
 
-	// PARSE UP TO 45 Minutes
+	// Store the second the round ended, and the winner of the round 1 if the first 5 players won, 0 otherwise
+	p.RegisterEventHandler(func(e events.RoundEnd) {
+		if e.WinnerState != nil {
+			if len(e.WinnerState.Members()) > 0 {
+				if idx, ok := playerMap[e.WinnerState.Members()[0].Name]; ok {
+					roundVector[round][0] = int16(second)
+					if idx < 5 {
+						roundVector[round][1] = int16(1)
+					} else {
+						roundVector[round][1] = int16(0)
+					}
+					roundVector = append(roundVector, make([]int16, 2))
+					round += 1
+				} else {
+					fmt.Println("No winner state")
+					return
+				}
+			} else {
+				fmt.Println("No winner state")
+				return
+			}
+		} else {
+			fmt.Println("No winner state")
+			return
+		}
+
+	})
+
+	// PARSE UP TO END
 	startTime := p.CurrentTime()
 	for moreFrames := true; moreFrames; moreFrames, err = p.ParseNextFrame() {
 		if p.CurrentTime()-startTime >= time.Second {
-			for i := range demoVector {
-				demoVector[i] = append(demoVector[i], make([]float64, 23))
-			}
 			second += 1
+			demoVector = append(demoVector, make([][]float64, 10))
+			for j := range demoVector[second] {
+				demoVector[second][j] = make([]float64, 23)
+			}
 			startTime = p.CurrentTime()
 
 			players := p.GameState().Participants().Playing()
@@ -251,11 +323,20 @@ func ParseOneDemo(demoPath string, outputPath string) {
 		}
 	}
 
+	// Write the log data
 	writer, _ := gonpy.NewFileWriter(outputPath)
-	shape := []int{10, len(demoVector[0]), 23}
+	shape := []int{len(demoVector[0]), 10, 23}
 	writer.Shape = shape
 	writer.Version = 2
 	_ = writer.WriteFloat64(Flatten(demoVector))
+
+	// Write the round data
+	roundWriter, _ := gonpy.NewFileWriter(roundOutput)
+	round_shape := []int{len(roundVector), 2}
+	roundWriter.Shape = round_shape
+	roundWriter.Version = 2
+
+	_ = roundWriter.WriteInt16(Flatten2D(roundVector))
 }
 
 func main() {
@@ -270,8 +351,9 @@ func main() {
 	}
 	for _, file := range demos[1:] {
 		var extension = filepath.Ext(file)
-		output := root + "/vectors/" + filepath.Base(file)[0:len(filepath.Base(file))-len(extension)] + ".npy"
-		fmt.Println(output)
-		ParseOneDemo(file, output)
+		log_output := root + "/vectors/" + filepath.Base(file)[0:len(filepath.Base(file))-len(extension)] + ".npy"
+		round_output := root + "/vectors/" + filepath.Base(file)[0:len(filepath.Base(file))-len(extension)] + "_rounds.npy"
+		fmt.Println(log_output)
+		ParseOneDemo(file, log_output, round_output)
 	}
 }
