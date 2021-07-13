@@ -325,7 +325,7 @@ func ParseOneDemo(demoPath string, outputPath string, roundOutput string) {
 
 	// Write the log data
 	writer, _ := gonpy.NewFileWriter(outputPath)
-	shape := []int{len(demoVector[0]), 10, 23}
+	shape := []int{len(demoVector), 10, 23}
 	writer.Shape = shape
 	writer.Version = 2
 	_ = writer.WriteFloat64(Flatten(demoVector))
@@ -351,8 +351,8 @@ func main() {
 	}
 	for _, file := range demos[1:] {
 		var extension = filepath.Ext(file)
-		log_output := root + "/vectors/" + filepath.Base(file)[0:len(filepath.Base(file))-len(extension)] + ".npy"
-		round_output := root + "/vectors/" + filepath.Base(file)[0:len(filepath.Base(file))-len(extension)] + "_rounds.npy"
+		log_output := root + "/vectors/sequences/" + filepath.Base(file)[0:len(filepath.Base(file))-len(extension)] + ".npy"
+		round_output := root + "/vectors/rounds/" + filepath.Base(file)[0:len(filepath.Base(file))-len(extension)] + "_rounds.npy"
 		fmt.Println(log_output)
 		ParseOneDemo(file, log_output, round_output)
 	}
