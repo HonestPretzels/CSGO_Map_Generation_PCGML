@@ -351,8 +351,8 @@ func main() {
 	}
 	for _, file := range demos[1:] {
 		var extension = filepath.Ext(file)
-		log_output := root + "/vectors/sequences/" + filepath.Base(file)[0:len(filepath.Base(file))-len(extension)] + ".npy"
-		round_output := root + "/vectors/rounds/" + filepath.Base(file)[0:len(filepath.Base(file))-len(extension)] + "_rounds.npy"
+		log_output := root + "/vectors/fullGames/sequences/" + filepath.Base(file)[0:len(filepath.Base(file))-len(extension)] + ".npy"
+		round_output := root + "/vectors/fullGames/rounds/" + filepath.Base(file)[0:len(filepath.Base(file))-len(extension)] + "_rounds.npy"
 		fmt.Println(log_output)
 		ParseOneDemo(file, log_output, round_output)
 	}
