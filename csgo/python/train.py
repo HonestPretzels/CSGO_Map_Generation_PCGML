@@ -1,3 +1,4 @@
+from genericpath import isfile
 import numpy as np
 import tflearn
 from PIL import Image, ImageOps
@@ -20,6 +21,7 @@ MAP_DEPTH = 5
 MAP_SCALE = 128
 
 
+
 def load_data(dataPath, mapPath, targetPath, mapMapping):
     '''
     Load the 3 data vectors and split them out into train-test splits
@@ -40,7 +42,17 @@ def load_data(dataPath, mapPath, targetPath, mapMapping):
    
 
     print('splitting')
-    return train_test_split(data, finishedMaps, target, test_size=0.1, random_state=1337)
+    xTrain, xTest, mapTrain, mapTest, yTrain, yTest = train_test_split(data, finishedMaps, target, test_size=0.1, random_state=1337)
+
+    xTrain = np.reshape(xTrain, [-1, SECONDS*PLAYERS*STATE_LENGTH])
+    mapTrain = np.reshape(mapTrain, [-1, MAP_DEPTH*MAP_SCALE*MAP_SCALE])
+    fullTrain = np.concatenate((xTrain, mapTrain), axis=1)
+
+    xValidate = np.reshape(xTest, [-1, SECONDS*PLAYERS*STATE_LENGTH])
+    mapValidate = np.reshape(mapTest, [-1, MAP_DEPTH*MAP_SCALE*MAP_SCALE])
+    fullValidate = np.concatenate((xValidate, mapValidate), axis=1)
+
+    return (fullTrain, yTrain), (fullValidate, yTest)
 
 def generate_map_mapping(mapPath):
     '''
@@ -74,26 +86,33 @@ def processImage(image):
     return np.asarray_chkfinite(ImageOps.grayscale(image))
 
 def main():
-    data = sys.argv[1]
-    maps = sys.argv[2]
-    target = sys.argv[3]
+    dataPath = sys.argv[1]
+    mapsPath = sys.argv[2]
+    targetPath = sys.argv[3]
     imagePath = sys.argv[4]
+    checkPointPath = sys.argv[5]
 
     mapMapping = generate_map_mapping(imagePath)
+    data, maps, targets = getSets(dataPath, mapsPath, targetPath)
 
-    xTrain, xTest, mapTrain, mapTest, yTrain, yTest = load_data(data, maps, target, mapMapping)
-    
-    xTrain = np.reshape(xTrain, [-1, SECONDS*PLAYERS*STATE_LENGTH])
-    mapTrain = np.reshape(mapTrain, [-1, MAP_DEPTH*MAP_SCALE*MAP_SCALE])
-    fullTrain = np.concatenate((xTrain, mapTrain), axis=1)
+    # SET ONE
+    (xTrain, yTrain) , (xValidate, yValidate) = load_data(data[0], maps[0], targets[0], mapMapping)
+    model = initNetwork(xTrain.shape)
+    model.fit(xTrain, yTrain, validation_set=(xValidate, yValidate), show_metric=True, batch_size=32)
+    model.save(checkPointPath)
 
-    xValidate = np.reshape(xTest, [-1, SECONDS*PLAYERS*STATE_LENGTH])
-    mapValidate = np.reshape(mapTest, [-1, MAP_DEPTH*MAP_SCALE*MAP_SCALE])
-    fullValidate = np.concatenate((xValidate, mapValidate), axis=1)
+    for i in range(len(data))[1:]:
+        (xTrain, yTrain) , (xValidate, yValidate) = load_data(data[i], maps[i], targets[i], mapMapping)
+        model.load(checkPointPath)
+        model.fit(xTrain, yTrain, validation_set=(xValidate, yValidate), show_metric=True, batch_size=32)
+        model.save(checkPointPath)
 
-    
-    model = initNetwork(fullTrain.shape)
-    model.fit(fullTrain, yTrain, validation_set=(fullValidate, yTest), show_metric=True, batch_size=32)
+
+def getSets(dPath, mPath, tPath):
+    data = {i: path for i , path in enumerate([os.path.join(dPath, f) for f in os.listdir(dPath)])}
+    maps = {i: path for i , path in enumerate([os.path.join(mPath, f) for f in os.listdir(mPath)])}
+    targets = {i: path for i , path in enumerate([os.path.join(tPath, f) for f in os.listdir(tPath)])}
+    return data, maps, targets
 
 def initNetwork(inputShape):
 
