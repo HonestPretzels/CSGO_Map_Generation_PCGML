@@ -7,6 +7,7 @@ from tflearn import conv_2d, input_data
 import sys, os
 from tflearn.layers.conv import max_pool_2d
 import tensorflow as tf
+import random
 
 from tflearn.layers.core import dropout, fully_connected
 from tflearn.layers.estimator import regression
@@ -20,7 +21,8 @@ STATE_LENGTH = 23
 MAP_DEPTH = 5
 MAP_SCALE = 128
 
-
+random.seed(1337)
+tf.random.set_seed(1337)
 
 def load_data(dataPath, mapPath, targetPath, mapMapping):
     '''
@@ -102,10 +104,15 @@ def main():
     model.save(checkPointPath)
 
     for i in range(len(data))[1:]:
+        del xTrain
+        del yTrain
+        del xValidate
+        del yValidate
         (xTrain, yTrain) , (xValidate, yValidate) = load_data(data[i], maps[i], targets[i], mapMapping)
         model.load(checkPointPath)
         model.fit(xTrain, yTrain, validation_set=(xValidate, yValidate), show_metric=True, batch_size=32)
         model.save(checkPointPath)
+    model.save(os.join(os.path.split(checkPointPath)[0],"final.model"))
 
 
 def getSets(dPath, mPath, tPath):
