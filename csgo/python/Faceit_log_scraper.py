@@ -5,9 +5,9 @@ from dotenv import load_dotenv
 from tqdm import tqdm
 
 load_dotenv()
-env_path = '../.env'
-data_path = './logs/data'
-demos_path = './logs/demos'
+env_path = '.env'
+data_path = '../logs/testData'
+demos_path = '../logs/testDemos'
 load_dotenv(dotenv_path=env_path)
 
 API_KEY = os.getenv('FACEIT_API_KEY')
@@ -22,7 +22,7 @@ hub_ids = {
 
 
 def main():
-    for i in tqdm(range(0,5000, 100)):
+    for i in tqdm(range(0,100, 100)):
         requestString = '%s/%s/%s/%s?%s=%d&%s=%d'%(FACEIT_API, 'hubs', hub_ids['MythicBronze'], 'matches', 'offset', i, 'limit', 100)
         print(requestString)
         JSONmatches = requests.get(requestString, headers=headers).content

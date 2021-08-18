@@ -25,6 +25,8 @@ def ProcessOneDemo(seqPath, roundsPath):
     seq = np.load(seqPath)
     out = []
     outScores = []
+    splitsPerRound = []
+    roundsforGame = len(rounds[1:-1])
 
     # First round is knife, last round is padding
     for i in range(len(rounds[1:-1])):
@@ -47,11 +49,12 @@ def ProcessOneDemo(seqPath, roundsPath):
 
         # Save splits
         out.extend(splits)
+        splitsPerRound.append(len(splits))
         outScores.extend([rounds[i][1]]*len(splits))
 
     out = np.array(out)
     outScores = np.array(outScores)
-    return out, outScores
+    return out, outScores, splitsPerRound
     
         
 
@@ -62,18 +65,21 @@ def main():
     fullData = []
     fullScores = []
     fullMaps = []
+    roundsPerGame = []
     for f in tqdm(round_files):
         sf = os.path.join(os.path.join(logPath, "fullGames\\sequences"), os.path.basename(f).split('_')[0] + '.npy')
         rf = os.path.join(os.path.join(logPath, "fullGames\\rounds"), f)
-        data, scores = ProcessOneDemo(sf, rf)
+        data, scores, splitsPerRound = ProcessOneDemo(sf, rf)
         fullData.extend(data)
         fullScores.extend(scores)
+        roundsPerGame.append(splitsPerRound)
         fullMaps.extend([getMap(os.path.basename(rf).split('_')[0], metaDataPath)]*len(data))
 
-    outputPath = os.path.join(logPath, "trainingSequences")
-    np.save(os.path.join(os.path.join(outputPath,"data"),"train_data.npy"), np.array(fullData))
-    np.save(os.path.join(os.path.join(outputPath,"scores"), "train_scores.npy"), np.array(fullScores))
-    np.save(os.path.join(os.path.join(outputPath,"maps"), "train_maps.npy"), np.array(fullMaps))
+    outputPath = os.path.join(logPath, "testSequences")
+    np.save(os.path.join(os.path.join(outputPath,"data"),"test_data.npy"), np.array(fullData))
+    np.save(os.path.join(os.path.join(outputPath,"scores"), "test_scores.npy"), np.array(fullScores))
+    np.save(os.path.join(os.path.join(outputPath,"maps"), "test_maps.npy"), np.array(fullMaps))
+    np.save(os.path.join(os.path.join(outputPath,"gameBreaks"),"test_gameBreaks.npy"), np.array(roundsPerGame, dtype=object))
 
 if __name__ == "__main__":
     main()

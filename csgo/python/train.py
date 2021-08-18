@@ -160,34 +160,7 @@ def train():
         model.load(checkPointPath)
         model.fit(xTrain, yTrain, validation_set=(xValidate, yValidate), show_metric=True, batch_size=32)
         model.save(checkPointPath)
-    model.save(os.join(os.path.split(checkPointPath)[0],"final.model"))
-
-def evaluatePred(pred, actual):
-    correct = 0
-    total = 0
-
-    for x in pred:
-        total += 1
-        if x == actual:
-            correct += 1
-    print('Accuracy on test set is %.3f'%correct/total)
-    # TODO: GRAPH THE PREDICTION VS THE ACCURACY
-
-def test():
-    testDataPath = sys.argv[1]
-    testMapsPath = sys.argv[2]
-    testTargetsPath = sys.argv[3]
-    imagePath = sys.argv[4]
-    modelPath = sys.argv[5]
-
-    mapMapping = generate_map_mapping(imagePath)
-    data, maps, targets = getSets(testDataPath, testMapsPath, testTargetsPath)
-    (x, y) = load_data(data[0], maps[0], targets[0], mapMapping, doSplit=False)
-
-    model = initNetwork(x.shape)
-    model.load(modelPath, weights_only=True)
-    pred = model.predict(x)
-    evaluatePred(pred, y)
+    model.save(os.path.join(os.path.split(checkPointPath)[0],"final.model"))
 
 if __name__ == "__main__":
     train()
