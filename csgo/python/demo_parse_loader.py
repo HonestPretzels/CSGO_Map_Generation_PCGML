@@ -26,11 +26,10 @@ def ProcessOneDemo(seqPath, roundsPath):
     out = []
     outScores = []
     splitsPerRound = []
-    roundsforGame = len(rounds[1:-1])
 
     # First round is knife, last round is padding
-    for i in range(len(rounds[1:-1])):
-        round_start_second = rounds[i-1][0]
+    for i in range(1, len(rounds)):
+        round_start_second = rounds[i-1][0] + 1
         round_end_second = rounds[i][0]
         round = seq[round_start_second:round_end_second+1]
         # Needs to be padded
@@ -62,6 +61,10 @@ def main():
     logPath = sys.argv[1]
     metaDataPath = sys.argv[2]
     round_files = [f for f in os.listdir(os.path.join(logPath, "fullGames\\rounds")) if os.path.isfile(os.path.join(logPath, "fullGames\\rounds\\" + f))]
+    i = 0
+    for f in round_files:
+        i += 1
+        print('Game %d: %s'%(i, f))
     fullData = []
     fullScores = []
     fullMaps = []

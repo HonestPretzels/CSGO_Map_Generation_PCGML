@@ -8,6 +8,7 @@ from train import initNetwork, generate_map_mapping, load_data, getSets
 def evaluatePred(pred, actual, gameBreaks):
     correct = 0
     total = 0
+    wins = 0
 
     i = 0
     g = 0
@@ -24,13 +25,15 @@ def evaluatePred(pred, actual, gameBreaks):
             r = game[j]
             round_delineators.append(sum(game[:j+1]))
             for split in range(r):
-                i += 1
                 game_split += 1
-                winnerPred = np.argmax(pred[i])
-                winnerActual = np.argmax(actual[i])
+                winnerPred = pred[i][0]
+                winnerActual = actual[i][0]
+                i += 1
                 total += 1
-                if winnerPred == winnerActual:
+                if round(winnerPred) == round(winnerActual):
                     correct += 1
+                if winnerActual == 1:
+                    wins += 1
                 game_preds_y.append(winnerPred)
                 game_actuals_y.append(winnerActual)
                 game_preds_x.append(game_split)
@@ -44,6 +47,7 @@ def evaluatePred(pred, actual, gameBreaks):
         plt.savefig('./testPlots/test_game_%d.png'%g)
 
     print('Accuracy on test set is %.3f'%(correct/total))
+    print('Percentage of wins total is %.3f'%(wins/total))
     # TODO: GRAPH THE PREDICTION VS THE ACTUAL
 
 def test():
