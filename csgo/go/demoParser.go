@@ -10,6 +10,7 @@ import (
 	dem "github.com/markus-wa/demoinfocs-golang/v2/pkg/demoinfocs"
 	"github.com/markus-wa/demoinfocs-golang/v2/pkg/demoinfocs/common"
 	"github.com/markus-wa/demoinfocs-golang/v2/pkg/demoinfocs/events"
+	"github.com/markus-wa/demoinfocs-golang/v2/pkg/demoinfocs/metadata"
 )
 
 // OUTPUT OF THIS PROGRAM IS A SERIES OF 2 NUMPY FILES PER DEMO
@@ -76,11 +77,17 @@ func boolToFloat(x bool) float64 {
 	return float64(0)
 }
 
-func updatePlayerState(player *common.Player, second int, idx int, demoVector [][][]float64) {
+func updatePlayerState(player *common.Player, mapData metadata.Map, second int, idx int, demoVector [][][]float64) {
+
+	// Translate Position to 0,0 minimap relative coords
+	x, y := mapData.TranslateScale(player.Position().X, player.Position().Y)
+	// Scale down coordinates from 1024 * 1024 to 128 * 128
+	x = x / 1024 * 128
+	y = y / 1024 * 128
+
 	// Postion
-	// TODO: translate and scale this relative to maps
-	demoVector[second][idx][PosX] = player.Position().X
-	demoVector[second][idx][PosY] = player.Position().Y
+	demoVector[second][idx][PosX] = x
+	demoVector[second][idx][PosY] = y
 	demoVector[second][idx][PosZ] = player.Position().Z
 	// Velocity
 	demoVector[second][idx][VelocityX] = player.Velocity().X
@@ -148,7 +155,9 @@ func ParseOneDemo(demoPath string, outputPath string, roundOutput string) {
 	defer f.Close()
 	p := dem.NewParser(f)
 	defer p.Close()
-	p.ParseHeader()
+	header, _ := p.ParseHeader()
+
+	mapMetaData := metadata.MapNameToMap[header.MapName]
 
 	if !validMap(p.Header().MapName) {
 		fmt.Println(p.Header().MapName + " is not a valid map")
@@ -315,7 +324,7 @@ func ParseOneDemo(demoPath string, outputPath string, roundOutput string) {
 				idx := playerMap[p.Name]
 
 				// Store pos and velocity
-				updatePlayerState(p, second, idx, demoVector)
+				updatePlayerState(p, mapMetaData, second, idx, demoVector)
 
 			}
 		}
