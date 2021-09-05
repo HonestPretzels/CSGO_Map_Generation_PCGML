@@ -2,27 +2,31 @@ import sys
 import os
 import numpy as np
 
+NUM_BATCHES = 30
+
 def main():
     dPath = sys.argv[1]
     mPath = sys.argv[2]
     tPath = sys.argv[3]
+    bPath = sys.argv[4]
 
-    data = np.load(dPath)
-    print(data.shape)
-    splitAndSave(data, dPath)
-    maps = np.load(mPath)
-    splitAndSave(maps, mPath)
-    targets = np.load(tPath)
-    splitAndSave(targets, tPath)
+    data = np.load(dPath + "\data.npy")
+    splitAndSave(data, dPath, "data")
+    maps = np.load(mPath + "\maps.npy")
+    splitAndSave(maps, mPath, "maps")
+    targets = np.load(tPath + "\scores.npy")
+    splitAndSave(targets, tPath, "scores")
+    breakPoints = np.load(bPath + "\\breakpoints.npy", allow_pickle=True)
+    splitAndSave(breakPoints, bPath, "breakpoints")
 
-def splitAndSave(data, dPath):
-    extra = data.shape[0] % 20
+def splitAndSave(data, dPath, name):
+    print(dPath)
+    extra = data.shape[0] % NUM_BATCHES
     if extra != 0:
         data = data[:-extra]
     print(data.shape)
-    for i, arr in enumerate(np.split(data, 20)):
-        path = os.path.split(dPath)[0]
-        path = os.path.join(path, "data_%d.npy"%i)
+    for i, arr in enumerate(np.split(data, NUM_BATCHES)):
+        path = os.path.join(dPath, "%s_%d.npy"%(name,i))
         np.save(path, arr)
 
 if __name__ == "__main__":

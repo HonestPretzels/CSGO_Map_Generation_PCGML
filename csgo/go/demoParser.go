@@ -342,9 +342,13 @@ func ParseOneDemo(demoPath string, outputPath string, roundOutput string) {
 
 func main() {
 	var demos []string
-	root := "E:/Projects/GRAIL_PCGML_tmaurer_summer_2021/csgo"
-	err := filepath.Walk(root+"/logs/testDemos/", func(path string, info os.FileInfo, err error) error {
-		demos = append(demos, path)
+	demosPath := os.Args[1]
+	sequencesPath := os.Args[2]
+	roundsPath := os.Args[3]
+	err := filepath.Walk(demosPath, func(path string, info os.FileInfo, err error) error {
+		if filepath.Ext(path) == ".dem" {
+			demos = append(demos, path)
+		}
 		return nil
 	})
 	if err != nil {
@@ -352,8 +356,8 @@ func main() {
 	}
 	for _, file := range demos[1:] {
 		var extension = filepath.Ext(file)
-		log_output := root + "/vectors/testSet/fullGames/sequences/" + filepath.Base(file)[0:len(filepath.Base(file))-len(extension)] + ".npy"
-		round_output := root + "/vectors/testSet/fullGames/rounds/" + filepath.Base(file)[0:len(filepath.Base(file))-len(extension)] + "_rounds.npy"
+		log_output := sequencesPath + "\\" + filepath.Base(file)[0:len(filepath.Base(file))-len(extension)] + ".npy"
+		round_output := roundsPath + "\\" + filepath.Base(file)[0:len(filepath.Base(file))-len(extension)] + "_rounds.npy"
 		fmt.Println(log_output)
 		ParseOneDemo(file, log_output, round_output)
 	}

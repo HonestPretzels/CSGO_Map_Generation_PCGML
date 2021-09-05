@@ -6,6 +6,9 @@ from train import initNetwork, generate_map_mapping, load_data, getSets
 # gameBreaks refers to the delinieators between the games and is an array of the number of splits in each game
 
 def evaluatePred(pred, actual, gameBreaks):
+    '''
+    Graph the predictions vs the actual for each game
+    '''
     correct = 0
     total = 0
     wins = 0
@@ -51,6 +54,9 @@ def evaluatePred(pred, actual, gameBreaks):
     # TODO: GRAPH THE PREDICTION VS THE ACTUAL
 
 def test():
+    '''
+    Main test loop
+    '''
     testDataPath = sys.argv[1]
     testMapsPath = sys.argv[2]
     testTargetsPath = sys.argv[3]

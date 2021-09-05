@@ -96,12 +96,19 @@ def processImage(image):
     return np.asarray_chkfinite(ImageOps.grayscale(image))
 
 def getSets(dPath, mPath, tPath):
+    '''
+    Returns the paths to the data, maps, and targets for each file in the directories given
+    as a simple dictionary
+    '''
     data = {i: path for i , path in enumerate([os.path.join(dPath, f) for f in os.listdir(dPath)])}
     maps = {i: path for i , path in enumerate([os.path.join(mPath, f) for f in os.listdir(mPath)])}
     targets = {i: path for i , path in enumerate([os.path.join(tPath, f) for f in os.listdir(tPath)])}
     return data, maps, targets
 
 def initNetwork(inputShape):
+    '''
+    Create the network architecture
+    '''
 
     # SPLIT
     netInput = input_data([None, inputShape[1]])
@@ -136,6 +143,9 @@ def initNetwork(inputShape):
     return model
 
 def train():
+    '''
+    Main training loop
+    '''
     dataPath = sys.argv[1]
     mapsPath = sys.argv[2]
     targetPath = sys.argv[3]
@@ -164,4 +174,3 @@ def train():
 
 if __name__ == "__main__":
     train()
-    #test()
