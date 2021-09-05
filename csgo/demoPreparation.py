@@ -6,14 +6,14 @@ from os import path
 def getAllFiles(p):
     return [f for f in os.listdir(p) if path.isfile(path.join(p, f))]
 
-def zipDemos(p, i):
-    demos = getAllFiles(p)
-    zipPath = path.join(p, "batch_%d"%i)
-    os.mkdir(zipPath)
-    for f in demos:
-        if path.isfile(path.join(p, f)) and (path.basename(path.join(p, f)).split('.')[-1] == "dem"):
-                shutil.move(path.join(p, f), path.join(zipPath, f))
-    shutil.make_archive(zipPath, "zip", zipPath)
+# def zipDemos(p, i):
+#     demos = getAllFiles(p)
+#     zipPath = path.join(p, "batch_%d"%i)
+#     os.mkdir(zipPath)
+#     for f in demos:
+#         if path.isfile(path.join(p, f)) and (path.basename(path.join(p, f)).split('.')[-1] == "dem"):
+#                 shutil.move(path.join(p, f), path.join(zipPath, f))
+#     shutil.make_archive(zipPath, "zip", zipPath)
 
 def main():
 
@@ -79,7 +79,7 @@ def main():
     # process demos in batches
     for batch in range(1, 11):
         # fetch the demos
-        os.system("python .\python\Faceit_log_scraper.py %d %d %s %s -b -s -g -d"%(i, i-1, demoPath, metaDataPath))
+        os.system("python .\python\Faceit_log_scraper.py %d %d %s %s -b -s -g -d"%(batch, batch-1, demoPath, metaDataPath))
 
         # Split out the test set
         demos = getAllFiles(demoPath)
@@ -100,8 +100,6 @@ def main():
         os.chdir('..')
 
         # zip the demos and remove originals for space saving
-        zipDemos(testDemoPath, batch)
-        zipDemos(trainDemoPath, batch)
         shutil.rmtree(path.join(testDemoPath, "batch_%d"%batch))
         shutil.rmtree(path.join(trainDemoPath, "batch_%d"%batch))
 

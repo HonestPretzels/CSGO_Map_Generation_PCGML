@@ -2,7 +2,7 @@ import sys
 import os
 import numpy as np
 
-NUM_BATCHES = 30
+NUM_BATCHES = 40
 
 def main():
     dPath = sys.argv[1]
