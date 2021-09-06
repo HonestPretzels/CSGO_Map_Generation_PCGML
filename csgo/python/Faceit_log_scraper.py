@@ -46,14 +46,13 @@ def main():
     if "-d" in sys.argv:
         chosenHubs.append(hub_ids["MythicDiamond"])
     
-
     for hubId in chosenHubs:
-        for i in tqdm(range(0,batchCount*100, 100)):
-            requestString = '%s/%s/%s/%s?%s=%d&%s=%d'%(FACEIT_API, 'hubs', hubId, 'matches', 'offset', offset + i, 'limit', 100)
+        for i in range(0,batchCount*100, 100):
+            requestString = '%s/%s/%s/%s?%s=%d&%s=%d'%(FACEIT_API, 'hubs', hubId, 'matches', 'offset', offset*100 + i, 'limit', 100)
             print(requestString)
             JSONmatches = requests.get(requestString, headers=headers).content
             matches = json.loads(JSONmatches)['items']
-            for match in matches:
+            for match in tqdm(matches):
                 if match['status'] != 'FINISHED':
                     continue
                 else:

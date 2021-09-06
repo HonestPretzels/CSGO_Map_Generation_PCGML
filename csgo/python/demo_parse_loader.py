@@ -71,20 +71,45 @@ def main():
     fullScores = []
     fullMaps = []
     roundsPerGame = []
-    for f in tqdm(round_files):
+    halfPoint = len(round_files)//2
+    for f in tqdm(round_files[:halfPoint]):
         sf = os.path.join(os.path.join(sequencesPath), os.path.basename(f).split('_')[0] + '.npy')
         rf = os.path.join(os.path.join(roundsPath), f)
-        data, scores, splitsPerRound = ProcessOneDemo(sf, rf)
-        fullData.extend(data)
-        fullScores.extend(scores)
-        roundsPerGame.append(splitsPerRound)
-        fullMaps.extend([getMap(os.path.basename(rf).split('_')[0], metaDataPath)]*len(data))
-
+        try:
+            data, scores, splitsPerRound = ProcessOneDemo(sf, rf)
+            fullData.extend(data)
+            fullScores.extend(scores)
+            roundsPerGame.append(splitsPerRound)
+            fullMaps.extend([getMap(os.path.basename(rf).split('_')[0], metaDataPath)]*len(data))
+        except:
+            pass
     np.save(os.path.join(os.path.join(outputPath,"data"),"data.npy"), np.array(fullData))
     np.save(os.path.join(os.path.join(outputPath,"scores"), "scores.npy"), np.array(fullScores))
     np.save(os.path.join(os.path.join(outputPath,"maps"), "maps.npy"), np.array(fullMaps))
     # 2D array of the game [Number of rounds][Splits per round]
     np.save(os.path.join(os.path.join(outputPath,"breakpoints"),"breakpoints.npy"), np.array(roundsPerGame, dtype=object))
+
+    fullData = []
+    fullScores = []
+    fullMaps = []
+    roundsPerGame = []
+    for f in tqdm(round_files[halfPoint:]):
+        sf = os.path.join(os.path.join(sequencesPath), os.path.basename(f).split('_')[0] + '.npy')
+        rf = os.path.join(os.path.join(roundsPath), f)
+        try:
+            data, scores, splitsPerRound = ProcessOneDemo(sf, rf)
+            fullData.extend(data)
+            fullScores.extend(scores)
+            roundsPerGame.append(splitsPerRound)
+            fullMaps.extend([getMap(os.path.basename(rf).split('_')[0], metaDataPath)]*len(data))
+        except:
+            pass
+
+    np.save(os.path.join(os.path.join(outputPath,"data"),"data_pt2.npy"), np.array(fullData))
+    np.save(os.path.join(os.path.join(outputPath,"scores"), "scores_pt2.npy"), np.array(fullScores))
+    np.save(os.path.join(os.path.join(outputPath,"maps"), "maps_pt2.npy"), np.array(fullMaps))
+    np.save(os.path.join(os.path.join(outputPath,"breakpoints"),"breakpoints_pt2.npy"), np.array(roundsPerGame, dtype=object))
+    
 
 if __name__ == "__main__":
     main()

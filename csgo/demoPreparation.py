@@ -6,16 +6,22 @@ from os import path
 def getAllFiles(p):
     return [f for f in os.listdir(p) if path.isfile(path.join(p, f))]
 
-# def zipDemos(p, i):
-#     demos = getAllFiles(p)
-#     zipPath = path.join(p, "batch_%d"%i)
-#     os.mkdir(zipPath)
-#     for f in demos:
-#         if path.isfile(path.join(p, f)) and (path.basename(path.join(p, f)).split('.')[-1] == "dem"):
-#                 shutil.move(path.join(p, f), path.join(zipPath, f))
-#     shutil.make_archive(zipPath, "zip", zipPath)
+def cleanDemos(p):
+    demos = getAllFiles(p)
+    zipPath = path.join(p, "batch_demos")
+    os.mkdir(zipPath)
+    for f in demos:
+        if path.isfile(path.join(p, f)) and (path.basename(path.join(p, f)).split('.')[-1] == "dem"):
+                shutil.move(path.join(p, f), path.join(zipPath, f))
+    shutil.rmtree(zipPath)
+
 
 def main():
+    doScrape = False
+    if "-scrape" in sys.argv:
+        doScrape = True
+
+    offset = int(sys.argv[2])
 
     # Create the folder structure
     rootFolder = sys.argv[1]
@@ -77,9 +83,10 @@ def main():
         os.mkdir(testSplitBreakPointsPath)
 
     # process demos in batches
-    for batch in range(1, 11):
+    for batch in range(max(1,offset), 11):
         # fetch the demos
-        os.system("python .\python\Faceit_log_scraper.py %d %d %s %s -b -s -g -d"%(batch, batch-1, demoPath, metaDataPath))
+        if doScrape:
+            os.system("python .\python\Faceit_log_scraper.py %d %d %s %s -b -s -g -d"%(batch, batch-1, demoPath, metaDataPath))
 
         # Split out the test set
         demos = getAllFiles(demoPath)
@@ -100,8 +107,8 @@ def main():
         os.chdir('..')
 
         # zip the demos and remove originals for space saving
-        shutil.rmtree(path.join(testDemoPath, "batch_%d"%batch))
-        shutil.rmtree(path.join(trainDemoPath, "batch_%d"%batch))
+        cleanDemos(testDemoPath)
+        cleanDemos(trainDemoPath)
 
     # Parse the scraped demos into splits
     os.system('python .\python\\demo_parse_loader.py %s %s %s %s'%(testFullGameRoundVectorPath, testFullGameSequenceVectorPath, testMetaDataPath, testSplitPath))
