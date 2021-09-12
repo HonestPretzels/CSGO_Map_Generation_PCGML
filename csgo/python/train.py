@@ -28,14 +28,11 @@ def load_data(dataPath, mapPath, targetPath, mapMapping, doSplit=True):
     '''
     Load the 3 data vectors and split them out into train-test splits
     '''
-    print('loading data')
     data = np.load(dataPath)
-    print('loading maps')
     maps = np.load(mapPath)
     finishedMaps = np.empty((len(maps), MAP_DEPTH, MAP_SCALE, MAP_SCALE))
     for i in range(len(maps)):
         finishedMaps[i] = mapMapping[maps[i]]
-    print('loading scores')
     scores = np.load(targetPath)
     target = np.empty((len(scores), 2))
     for i in range(len(scores)):
@@ -95,7 +92,7 @@ def processImage(image):
     '''
     return np.asarray_chkfinite(ImageOps.grayscale(image))
 
-def getSets(dPath, mPath, tPath):
+def getSets(dPath, mPath, tPath, gPath = None):
     '''
     Returns the paths to the data, maps, and targets for each file in the directories given
     as a simple dictionary
@@ -103,7 +100,11 @@ def getSets(dPath, mPath, tPath):
     data = {i: path for i , path in enumerate([os.path.join(dPath, f) for f in os.listdir(dPath)])}
     maps = {i: path for i , path in enumerate([os.path.join(mPath, f) for f in os.listdir(mPath)])}
     targets = {i: path for i , path in enumerate([os.path.join(tPath, f) for f in os.listdir(tPath)])}
-    return data, maps, targets
+    if gPath != None:
+        gameBreaks = {i: path for i , path in enumerate([os.path.join(gPath, f) for f in os.listdir(gPath)])}
+        return data, maps, targets, gameBreaks
+    else:
+        return data, maps, targets
 
 def initNetwork(inputShape):
     '''

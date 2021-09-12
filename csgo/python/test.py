@@ -18,7 +18,7 @@ def evaluatePred(pred, actual, gameBreaks):
     for game in gameBreaks:
         g += 1
         game_split = 0
-        fig = plt.figure(figsize=(20,4))
+        # fig = plt.figure(figsize=(20,4))
         game_preds_x = []
         game_preds_y = []
         game_actuals_x = []
@@ -41,17 +41,15 @@ def evaluatePred(pred, actual, gameBreaks):
                 game_actuals_y.append(winnerActual)
                 game_preds_x.append(game_split)
                 game_actuals_x.append(game_split)
-        for x in round_delineators:
-            plt.axvline(x, color="black")
-        plt.plot(game_preds_x, game_preds_y, marker='o', label="predicted")
-        plt.plot(game_actuals_x, game_actuals_y, marker='*', linestyle="--", label="actual")
-        plt.legend(loc="upper right")
-        plt.ylim(-0.1, 1.5)
-        plt.savefig('./testPlots/test_game_%d.png'%g)
+        # for x in round_delineators:
+        #     plt.axvline(x, color="black")
+        # plt.plot(game_preds_x, game_preds_y, marker='o', label="predicted")
+        # plt.plot(game_actuals_x, game_actuals_y, marker='*', linestyle="--", label="actual")
+        # plt.legend(loc="upper right")
+        # plt.ylim(-0.1, 1.5)
+        # plt.savefig('./testPlots/test_game_%d.png'%g)
 
-    print('Accuracy on test set is %.3f'%(correct/total))
-    print('Percentage of wins total is %.3f'%(wins/total))
-    # TODO: GRAPH THE PREDICTION VS THE ACTUAL
+    return correct, wins, total
 
 def test():
     '''
@@ -65,15 +63,30 @@ def test():
     modelPath = sys.argv[6]
 
     mapMapping = generate_map_mapping(imagePath)
-    data, maps, targets = getSets(testDataPath, testMapsPath, testTargetsPath)
+    data, maps, targets, gameBreaks = getSets(testDataPath, testMapsPath, testTargetsPath, gameBreaksPath)
     (x, y) = load_data(data[0], maps[0], targets[0], mapMapping, doSplit=False)
 
     model = initNetwork(x.shape)
     model.load(modelPath, weights_only=True)
-    pred = model.predict(x)
+    
 
-    gameBreaks = np.load(gameBreaksPath, allow_pickle=True)
-    evaluatePred(pred, y, gameBreaks)
+    correctCount = 0
+    totalCount = 0
+    winsCount = 0
+    for i in range(len(data)):
+        (x, y) = load_data(data[i], maps[i], targets[i], mapMapping, doSplit=False)
+        pred = model.predict(x)
+        g = np.load(gameBreaks[i], allow_pickle=True)
+        count = 0
+        for game in g:
+            for r in game:
+                count += r
+        c, w, t = evaluatePred(pred, y, g)
+        correctCount += c
+        winsCount += w
+        totalCount += t
+
+    print("Accuracy: %.3f, Wins: %.3f"%(correctCount/totalCount, winsCount/totalCount))
 
 if __name__ == "__main__":
     test()

@@ -28,11 +28,15 @@ def main():
     splitAndSave(breakPoints2, bPath, "breakpoints2")
 
 def splitAndSave(data, dPath, name):
+    print(data.shape)
+    outputPath = os.path.join(dPath, "finished")
+    if not os.path.exists(outputPath):
+        os.mkdir(outputPath)
     extra = data.shape[0] % NUM_BATCHES
     if extra != 0:
         data = data[:-extra]
     for i, arr in enumerate(np.split(data, NUM_BATCHES)):
-        path = os.path.join(dPath, "%s_%d.npy"%(name,i))
+        path = os.path.join(outputPath, "%s_%d.npy"%(name,i))
         np.save(path, arr)
 
 if __name__ == "__main__":
