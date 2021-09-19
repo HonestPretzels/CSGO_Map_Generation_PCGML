@@ -121,12 +121,12 @@ def initNetwork(inputShape):
     mapInput = tf.reshape(mapFlat, [-1, MAP_DEPTH, MAP_SCALE, MAP_SCALE])
 
     # MAP HEAD
-    conv1 = conv_2d(mapInput,16, 3, activation="relu")
-    dropped = dropout(conv1, 0.5)
-    pooled1 = max_pool_2d(dropped, 2, strides=2)
-    conv2 = conv_2d(pooled1, 32, 3, activation="relu")
-    pooled2 = max_pool_2d(conv2, 2, strides=2)
-    flatMap = tflearn.flatten(pooled2)
+    # conv1 = conv_2d(mapInput,16, 3, activation="relu")
+    # dropped = dropout(conv1, 0.5)
+    # pooled1 = max_pool_2d(dropped, 2, strides=2)
+    # conv2 = conv_2d(pooled1, 32, 3, activation="relu")
+    # pooled2 = max_pool_2d(conv2, 2, strides=2)
+    # flatMap = tflearn.flatten(pooled2)
 
     # DATA HEAD
     lstm1 = lstm(dataInput, 128, dropout=0.8, return_seq=True)
@@ -134,8 +134,9 @@ def initNetwork(inputShape):
     flatData = tflearn.flatten(lstm2)
 
     # RECOMBINE 
-    combined = tf.concat([flatData, flatMap], 1)
-    fc1 = fully_connected(combined, 128)
+    # combined = tf.concat([flatData, flatMap], 1)
+    # fc1 = fully_connected(combined, 128)
+    fc1 = fully_connected(flatData, 128)
     fc2 = fully_connected(fc1, 64)
     fc3 = fully_connected(fc2, 2, activation="softmax")
     out = regression(fc3, optimizer="adam", learning_rate=0.001, loss="categorical_crossentropy")
@@ -169,7 +170,7 @@ def train():
         del yValidate
         (xTrain, yTrain) , (xValidate, yValidate) = load_data(data[i], maps[i], targets[i], mapMapping)
         model.load(checkPointPath)
-        model.fit(xTrain, yTrain, validation_set=(xValidate, yValidate), show_metric=True, batch_size=32)
+        model.fit(xTrain, yTrain, validation_set=(xValidate, yValidate), show_metric=True, batch_size=64)
         model.save(checkPointPath)
     model.save(os.path.join(os.path.split(checkPointPath)[0],"final.model"))
 
