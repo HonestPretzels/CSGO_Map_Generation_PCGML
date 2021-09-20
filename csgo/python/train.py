@@ -17,7 +17,7 @@ from demo_parse_loader import MAP_MAP
 
 SECONDS = 30
 PLAYERS = 10
-STATE_LENGTH = 23
+STATE_LENGTH = 3 # ONLY POSITIONAL DATA THIS TIME
 MAP_DEPTH = 5
 MAP_SCALE = 128
 
@@ -28,6 +28,7 @@ def load_data(dataPath, mapPath, targetPath, mapMapping, doSplit=True):
     '''
     Load the 3 data vectors and split them out into train-test splits
     '''
+    print(dataPath)
     data = np.load(dataPath)
     maps = np.load(mapPath)
     finishedMaps = np.empty((len(maps), MAP_DEPTH, MAP_SCALE, MAP_SCALE))
@@ -121,12 +122,12 @@ def initNetwork(inputShape):
     mapInput = tf.reshape(mapFlat, [-1, MAP_DEPTH, MAP_SCALE, MAP_SCALE])
 
     # MAP HEAD
-    conv1 = conv_2d(mapInput,16, 3, activation="relu")
-    dropped = dropout(conv1, 0.5)
-    pooled1 = max_pool_2d(dropped, 2, strides=2)
-    conv2 = conv_2d(pooled1, 32, 3, activation="relu")
-    pooled2 = max_pool_2d(conv2, 2, strides=2)
-    flatMap = tflearn.flatten(pooled2)
+    # conv1 = conv_2d(mapInput,16, 3, activation="relu")
+    # dropped = dropout(conv1, 0.5)
+    # pooled1 = max_pool_2d(dropped, 2, strides=2)
+    # conv2 = conv_2d(pooled1, 32, 3, activation="relu")
+    # pooled2 = max_pool_2d(conv2, 2, strides=2)
+    # flatMap = tflearn.flatten(pooled2)
 
     # DATA HEAD
     lstm1 = lstm(dataInput, 128, dropout=0.8, return_seq=True)
@@ -134,8 +135,8 @@ def initNetwork(inputShape):
     flatData = tflearn.flatten(lstm2)
 
     # RECOMBINE 
-    combined = tf.concat([flatData, flatMap], 1)
-    fc1 = fully_connected(combined, 128)
+    # combined = tf.concat([flatData, flatMap], 1)
+    fc1 = fully_connected(flatData, 128)
     fc2 = fully_connected(fc1, 64)
     fc3 = fully_connected(fc2, 2, activation="softmax")
     out = regression(fc3, optimizer="adam", learning_rate=0.001, loss="categorical_crossentropy")

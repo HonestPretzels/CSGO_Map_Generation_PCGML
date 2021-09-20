@@ -83,7 +83,6 @@ def main():
                 getMap(os.path.basename(rf).split('_')[0], metaDataPath)
                 data, scores, splitsPerRound = ProcessOneDemo(sf, rf)
             except:
-                print('metadata not found for %s'%rf)
                 continue
             fullMaps.extend([getMap(os.path.basename(rf).split('_')[0], metaDataPath)]*len(data))
             fullData.extend(data)
@@ -97,6 +96,14 @@ def main():
             for round in game:
                 count += round
         print('break points:', count)
+
+        # Get only the pos data
+        for split in range(len(fullData)):
+            # Very dirty way of doing this but it works for now
+            fullData[split] = fullData[split].tolist()
+            for second in range(len(fullData[split])):
+                for player in range(len(fullData[split][second])):
+                   fullData[split][second][player] = fullData[split][second][player][:3]
 
         np.save(os.path.join(os.path.join(outputPath,"data"),"data_%d.npy"%(marker//gamesPerFile)), np.array(fullData))
         np.save(os.path.join(os.path.join(outputPath,"scores"), "scores_%d.npy"%(marker//gamesPerFile)), np.array(fullScores))

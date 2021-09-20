@@ -1,4 +1,4 @@
 import numpy as np
 
-x = np.load('.\\first_data_set\\vectors\\testVectors\\splits\\breakpoints\\breakpoints_1.npy', allow_pickle=True)
-print(x)
+x = np.load('.\\Only_Pos_data_set\\vectors\\trainVectors\\splits\\data\\data_2.npy', allow_pickle=True)
+print(x.shape)
