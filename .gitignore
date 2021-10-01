@@ -144,3 +144,4 @@ cython_debug/
 *.gz
 */vectors/
 */first_data_set/
+*/Only_Pos_data_set/
