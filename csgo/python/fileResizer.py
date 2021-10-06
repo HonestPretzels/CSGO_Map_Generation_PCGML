@@ -9,7 +9,7 @@ def splitAndSave(f, out, n):
     arr = np.load(f, allow_pickle=True)
     divisor = len(arr) // n
     for i in range(n):
-        newArr = arr[i: (i+1)*divisor]
+        newArr = arr[i*divisor: (i+1)*divisor]
         np.save("%s_%d.npy"%(out, i+1), newArr,  allow_pickle=True)
 
 def main():

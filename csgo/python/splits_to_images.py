@@ -139,7 +139,6 @@ def processArray(seq, maps, images, outPath):
                 else:
                     posX = round(player_data[0])
                     posY = round(player_data[1])
-                    print(posY, posX)
                     # Bump players 1 pixel away from the edge of map to allow for full representations
                     posX = 126 if posX >= 127 else posX
                     posY = 126 if posY >= 127 else posY
