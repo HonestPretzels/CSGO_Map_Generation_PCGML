@@ -179,11 +179,11 @@ def main():
     SplitFiles = getAllFilePaths(splitFolder)
     MapFiles = getAllFilePaths(mapsFolder)
     images = getAllFilePaths(imageFolder)
-    for idx in tqdm(range(len(SplitFiles))):
-        sequenceArr = np.load(SplitFiles[idx])
-        mapsArr = np.load(MapFiles[idx])
+    # for idx in tqdm(range(len(SplitFiles))):
+    #     sequenceArr = np.load(SplitFiles[idx])
+    #     mapsArr = np.load(MapFiles[idx])
 
-        processArray(sequenceArr, mapsArr, images, path.join(outFolder, "data_%d.npy"%idx))
+    #     processArray(sequenceArr, mapsArr, images, path.join(outFolder, "data_%d.npy"%idx))
 
 if __name__ == "__main__":
     main()
