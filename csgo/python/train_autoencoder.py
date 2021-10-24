@@ -34,15 +34,25 @@ def generate_batches(dataFiles, batch_size):
             yield x, x
 
 def genModel():
+    # Currently based off the architecture here: https://keras.io/examples/vision/autoencoder/
     input_img = keras.Input(shape=(15,128,128))
-    encoded = layers.Conv2D(32, (3,3), activation="relu", data_format="channels_first")(input_img)
-    decoded = layers.Conv2DTranspose(15, (3,3), activation="relu", data_format="channels_first")(encoded)
+    # Encoder
+    encoded = layers.Conv2D(32, (3,3), activation="relu", padding="same", data_format="channels_first")(input_img)
+    encoded = layers.MaxPooling2D((2,2), padding="same", data_format="channels_first")(encoded)
+    encoded = layers.Conv2D(32, (3,3), activation="relu", padding="same", data_format="channels_first")(encoded)
+    encoded = layers.MaxPooling2D((2,2), padding="same", data_format="channels_first")(encoded)
+
+    # Decoder
+    decoded = layers.Conv2DTranspose(32, (3,3), strides=2, activation="relu", data_format="channels_first", padding="same")(encoded)
+    decoded = layers.Conv2DTranspose(32, (3,3), strides=2, activation="relu", data_format="channels_first", padding="same")(decoded)
+    decoded = layers.Conv2D(15, (3,3), activation="sigmoid", padding="same", data_format="channels_first")(decoded)
     autoencoder = keras.Model(input_img, decoded)
 
     return autoencoder
 
 def train(model, trainData, testData, batchSize):
     model.compile(optimizer="adam", loss="binary_crossentropy")
+    model.summary()
     model.fit(trainData,
         epochs=50,
         batch_size=batchSize,
