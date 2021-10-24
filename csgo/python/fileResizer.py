@@ -1,6 +1,7 @@
 import os, sys
-from os import curdir, path
+from os import path
 import numpy as np
+from tqdm import tqdm
 
 def getAllFiles(p):
     return [f for f in os.listdir(p) if path.isfile(path.join(p, f))]
@@ -11,6 +12,7 @@ def splitAndSave(f, out, n):
     for i in range(n):
         newArr = arr[i*divisor: (i+1)*divisor]
         np.save("%s_%d.npy"%(out, i+1), newArr,  allow_pickle=True)
+    os.remove(f)
 
 def main():
     inputDir = sys.argv[1]
@@ -18,11 +20,11 @@ def main():
     numSplits = int(sys.argv[3])
     subFolders = ['breakpoints', 'data', 'maps', 'scores']
 
-    for folder in subFolders:
-        curdir = path.join(inputDir, folder)
-        for f in getAllFiles(curdir):
-            out = path.join(path.join(outputDir, folder), path.basename(f).split(".")[0])
-            splitAndSave(path.join(curdir, f), out, numSplits)
+    # for folder in subFolders:
+    # curdir = path.join(inputDir, folder)
+    for f in tqdm(getAllFiles(inputDir)):
+        out = path.join(outputDir, path.basename(f).split(".")[0])
+        splitAndSave(path.join(inputDir, f), out, numSplits)
     pass
 
 if __name__ == "__main__":
