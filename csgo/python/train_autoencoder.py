@@ -23,9 +23,9 @@ def toOneHot(arr):
 def generate_batches(dataFiles, batch_size):
     counter = 0
 
-    while True:
+    while counter < len(dataFiles):
         dfname = dataFiles[counter]
-        counter = (counter + 1) % len(dataFiles)
+        counter += 1
         data = np.load(dfname, allow_pickle=True)
         data = data.reshape(data.shape[0]*30, 15, 128, 128)
         maxLength = data.shape[0] - (data.shape[0] % batch_size)
@@ -50,43 +50,52 @@ def genModel():
 
     return autoencoder
 
-def train(model, trainData, batchSize):
+def train(model: keras.Model, trainData, testData, batchSize, checkpointPath):
+    model_checkpoint_callback = keras.callbacks.ModelCheckpoint(
+        filepath=checkpointPath,
+        save_weights_only=True,
+        monitor='val_loss',
+        mode='max',
+        save_best_only=True)
+
     model.compile(optimizer="adam", loss="binary_crossentropy")
     model.summary()
-    model.fit(trainData, trainData,
+    model.fit(trainData,
+        verbose=1,
         epochs=50,
         batch_size=batchSize,
+        validation_data= testData,
         shuffle=True,
+        callbacks=[model_checkpoint_callback]
     )
 
 def main():
     trainDataDir = sys.argv[1]
+    testDataDir = sys.argv[2]
+    checkpointPath = sys.argv[3]
 
     trainDataFiles = [path.join(trainDataDir, f) for f in getAllFiles(trainDataDir)]
+    testDataFiles = [path.join(testDataDir, f) for f in getAllFiles(testDataDir)]
 
     
     batchSize = 30 # Number of single seconds to look at
 
-    trainDataSet = np.load(trainDataFiles[0])
-    trainDataSet = trainDataSet.reshape(trainDataSet.shape[0]*30, 15, 128, 128)
+    
 
-    trainDataSet = trainDataSet[:360]
-    print(trainDataSet.shape, trainDataSet.dtype)
+    trainDataSet = tf.data.Dataset.from_generator(
+        generator=lambda: generate_batches(trainDataFiles, batchSize),
+        output_types=(np.uint8, np.uint8),
+        output_shapes=([batchSize,15,128,128], [batchSize,15,128,128])
+    )
 
-    # trainDataSet = tf.data.Dataset.from_generator(
-    #     generator=lambda: generate_batches(trainDataFiles, batchSize),
-    #     output_types=(np.uint8, np.uint8),
-    #     output_shapes=([batchSize,15,128,128], [batchSize,15,128,128])
-    # )
-
-    # testDataSet = tf.data.Dataset.from_generator(
-    #     generator=lambda: generate_batches(testDataFiles, batchSize),
-    #     output_types=(np.uint8, np.uint8),
-    #     output_shapes=([batchSize,15,128,128], [batchSize,15,128,128])
-    # )
+    testDataSet = tf.data.Dataset.from_generator(
+        generator=lambda: generate_batches(testDataFiles, batchSize),
+        output_types=(np.uint8, np.uint8),
+        output_shapes=([batchSize,15,128,128], [batchSize,15,128,128])
+    )
 
     autoencoder = genModel()
-    train(autoencoder, trainDataSet, batchSize)
+    train(autoencoder, trainDataSet, testDataSet, 12, checkpointPath)
 
 if __name__ == "__main__":
     with tf.device("gpu:0"):
