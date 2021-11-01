@@ -50,39 +50,43 @@ def genModel():
 
     return autoencoder
 
-def train(model, trainData, testData, batchSize):
+def train(model, trainData, batchSize):
     model.compile(optimizer="adam", loss="binary_crossentropy")
     model.summary()
-    model.fit(trainData,
+    model.fit(trainData, trainData,
         epochs=50,
         batch_size=batchSize,
         shuffle=True,
-        validation_data=testData
     )
 
 def main():
     trainDataDir = sys.argv[1]
-    testDataDir = sys.argv[2]
 
     trainDataFiles = [path.join(trainDataDir, f) for f in getAllFiles(trainDataDir)]
-    testDataFiles = [path.join(testDataDir, f) for f in getAllFiles(testDataDir)]
+
     
     batchSize = 30 # Number of single seconds to look at
 
-    trainDataSet = tf.data.Dataset.from_generator(
-        generator=lambda: generate_batches(trainDataFiles, batchSize),
-        output_types=(np.uint8, np.uint8),
-        output_shapes=([batchSize,15,128,128], [batchSize,15,128,128])
-    )
+    trainDataSet = np.load(trainDataFiles[0])
+    trainDataSet = trainDataSet.reshape(trainDataSet.shape[0]*30, 15, 128, 128)
 
-    testDataSet = tf.data.Dataset.from_generator(
-        generator=lambda: generate_batches(testDataFiles, batchSize),
-        output_types=(np.uint8, np.uint8),
-        output_shapes=([batchSize,15,128,128], [batchSize,15,128,128])
-    )
+    trainDataSet = trainDataSet[:360]
+    print(trainDataSet.shape, trainDataSet.dtype)
+
+    # trainDataSet = tf.data.Dataset.from_generator(
+    #     generator=lambda: generate_batches(trainDataFiles, batchSize),
+    #     output_types=(np.uint8, np.uint8),
+    #     output_shapes=([batchSize,15,128,128], [batchSize,15,128,128])
+    # )
+
+    # testDataSet = tf.data.Dataset.from_generator(
+    #     generator=lambda: generate_batches(testDataFiles, batchSize),
+    #     output_types=(np.uint8, np.uint8),
+    #     output_shapes=([batchSize,15,128,128], [batchSize,15,128,128])
+    # )
 
     autoencoder = genModel()
-    train(autoencoder, trainDataSet, testDataSet, batchSize)
+    train(autoencoder, trainDataSet, batchSize)
 
 if __name__ == "__main__":
     with tf.device("gpu:0"):

@@ -32,7 +32,7 @@ PLAYER_TYPES = {
     "Standard": 4,
 }
 
-PLAYER_OPACITY = 51 # 255/5 To allow for players to stack on each other
+PLAYER_OPACITY = 0.2 
 
 def getAllFilePaths(p):
     return [path.join(p,f) for f in os.listdir(p) if path.isfile(path.join(p, f))]
@@ -50,56 +50,13 @@ def usedUtility(p):
         return True
     return False
 
-# def placePlayer(posX, posY, type):
-#     points = []
-#     if type == PLAYER_TYPES["Utility"]: # H shape
-#         # Top Row
-#         points.extend([(posX-1, posY+1), (posX+1, posY+1)])
-#         # Middle Row
-#         points.extend([(posX-1, posY), (posX, posY), (posX+1, posY)])
-#         # Bottom Row
-#         points.extend([(posX-1, posY-1), (posX+1, posY-1)])
-#     elif type == PLAYER_TYPES["Shooting"]: # X Shape
-#         # Top Row
-#         points.extend([(posX-1, posY+1), (posX+1, posY+1)])
-#         # Middle Row
-#         points.extend([(posX, posY)])
-#         # Bottom Row
-#         points.extend([(posX-1, posY-1), (posX+1, posY-1)])
-#     elif type == PLAYER_TYPES["Jumping"]: # + Shape
-#         # Top Row
-#         points.extend([(posX, posY+1)])
-#         # Middle Row
-#         points.extend([(posX-1, posY), (posX, posY), (posX+1, posY)])
-#         # Bottom Row
-#         points.extend([(posX, posY-1)])
-#     elif type == PLAYER_TYPES["Crouching"]: # O Shape
-#         # Top Row
-#         points.extend([(posX-1, posY+1), (posX, posY+1), (posX+1, posY+1)])
-#         # Middle Row
-#         points.extend([(posX-1, posY), (posX+1, posY)])
-#         # Bottom Row
-#         points.extend([(posX-1, posY-1), (posX, posY-1), (posX+1, posY-1)])
-#     elif type == PLAYER_TYPES["Standard"]: # Full Square
-#         # Top Row
-#         points.extend([(posX-1, posY+1), (posX, posY+1), (posX+1, posY+1)])
-#         # Middle Row
-#         points.extend([(posX-1, posY), (posX, posY), (posX+1, posY)])
-#         # Bottom Row
-#         points.extend([(posX-1, posY-1), (posX, posY-1), (posX+1, posY-1)])
-
-
-        
-#     return points
-
 def processArray(seq, maps, images, outPath):
 
-    # TODO: Iterate through splits
     # 30 Seconds, 
     # 15 depth (L1, L2, L1Obj, L2Obj, Bombs, T1_Standard, T1_Crouching, T1_Jumping, T1_Shooting, T1_Utility, T2_Standard, T2_Crouching, T2_Jumping, T2_Shooting, T2_Utility),
     # Mapsize, 
     # Mapsize
-    split_outPut = np.zeros((len(seq),30,15, MAP_SCALE, MAP_SCALE), dtype=np.uint8)
+    split_outPut = np.zeros((len(seq),30,15, MAP_SCALE, MAP_SCALE), dtype=np.float32)
     for split in tqdm(range(len(seq))):
         split_data = seq[split]
         split_map = REVERSE_MAP_MAP[maps[split]]
@@ -111,14 +68,19 @@ def processArray(seq, maps, images, outPath):
         for imgPath in images:
             if L1 in imgPath:
                 L1_arr = np.asarray(Image.open(imgPath).convert('L'))
+                L1_arr = L1_arr * (1/255)
             elif L2 in imgPath:
                 L2_arr = np.asarray(Image.open(imgPath).convert('L'))
+                L2_arr = L2_arr * (1/255)
             elif L1Obj in imgPath:
                 L1Obj_arr = np.asarray(Image.open(imgPath).convert('L'))
+                L1Obj_arr = L1Obj_arr * (1/255)
             elif L2Obj in imgPath:
                 L2Obj_arr = np.asarray(Image.open(imgPath).convert('L'))
+                L2Obj_arr = L2Obj_arr * (1/255)
             elif bombs in imgPath:
                 bombs_arr = np.asarray(Image.open(imgPath).convert('L'))
+                bombs_arr = bombs_arr * (1/255)
 
         for second in range(len(split_data)):
             split_outPut[split][second][0] = L1_arr
@@ -154,17 +116,7 @@ def processArray(seq, maps, images, outPath):
                     split_outPut[split][second][teamOffset + 1][posY][posX] += PLAYER_OPACITY
                 else: # Standard
                     split_outPut[split][second][teamOffset][posY][posX] += PLAYER_OPACITY
-                    
 
-            # Visualization Code
-            # r = split_outPut[split][second][5]
-            # g = split_outPut[split][second][10]
-            # b = split_outPut[split][second][0]
-
-
-            # rgbArr = np.dstack((r, g, b))
-            # img = Image.fromarray(rgbArr)
-            # img.show()
     np.save(outPath, split_outPut)
 
 
@@ -179,11 +131,11 @@ def main():
     SplitFiles = getAllFilePaths(splitFolder)
     MapFiles = getAllFilePaths(mapsFolder)
     images = getAllFilePaths(imageFolder)
-    # for idx in tqdm(range(len(SplitFiles))):
-    #     sequenceArr = np.load(SplitFiles[idx])
-    #     mapsArr = np.load(MapFiles[idx])
+    for idx in tqdm(range(len(SplitFiles))):
+        sequenceArr = np.load(SplitFiles[idx])
+        mapsArr = np.load(MapFiles[idx])
 
-    #     processArray(sequenceArr, mapsArr, images, path.join(outFolder, "data_%d.npy"%idx))
+        processArray(sequenceArr, mapsArr, images, path.join(outFolder, "data_%d.npy"%idx))
 
 if __name__ == "__main__":
     main()

@@ -83,7 +83,7 @@ def main():
         os.mkdir(testSplitBreakPointsPath)
 
     # process demos in batches
-    for batch in range(max(1,offset), 11):
+    for batch in range(max(1,offset), 2):
         # fetch the demos
         if doScrape:
             os.system("python .\python\Faceit_log_scraper.py %d %d %s %s -b -s -g -d"%(batch, batch-1, demoPath, metaDataPath))
@@ -93,6 +93,7 @@ def main():
         for i in range(len(demos)):
             metaDataFileName = path.basename(demos[i]).split('.')[0] + ".json"
             if i % 10 == 0:
+                print(path.join(demoPath, demos[i]), path.join(testDemoPath, demos[i]))
                 shutil.move(path.join(demoPath, demos[i]), path.join(testDemoPath, demos[i]))
                 shutil.move(path.join(metaDataPath, metaDataFileName), path.join(testMetaDataPath, metaDataFileName))
             else:
@@ -107,16 +108,12 @@ def main():
         os.chdir('..')
 
         # zip the demos and remove originals for space saving
-        cleanDemos(testDemoPath)
-        cleanDemos(trainDemoPath)
+        # cleanDemos(testDemoPath)
+        # cleanDemos(trainDemoPath)
 
-    # Parse the scraped demos into splits
-    os.system('python .\python\\demo_parse_loader.py %s %s %s %s'%(testFullGameRoundVectorPath, testFullGameSequenceVectorPath, testMetaDataPath, testSplitPath))
-    os.system('python .\python\\demo_parse_loader.py %s %s %s %s'%(trainFullGameRoundVectorPath, trainFullGameSequenceVectorPath, trainMetaDataPath, trainSplitPath))
-
-    # Create the Numpy batch files for training
-    os.system('python .\python\\dataSplitter.py %s %s %s %s'%(testSplitDataPath, testSplitMapsPath, testSplitScoresPath, testSplitBreakPointsPath))
-    os.system('python .\python\\dataSplitter.py %s %s %s %s'%(trainSplitDataPath, trainSplitMapsPath, trainSplitScoresPath, trainSplitBreakPointsPath))
+    # # Parse the scraped demos into splits
+    # os.system('python .\python\\demo_parse_loader.py %s %s %s %s'%(testFullGameRoundVectorPath, testFullGameSequenceVectorPath, testMetaDataPath, testSplitPath))
+    # os.system('python .\python\\demo_parse_loader.py %s %s %s %s'%(trainFullGameRoundVectorPath, trainFullGameSequenceVectorPath, trainMetaDataPath, trainSplitPath))
 
 if __name__ == "__main__":
     main()

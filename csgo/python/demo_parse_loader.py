@@ -70,8 +70,9 @@ def main():
         print('Game %d: %s'%(i, f))
     
     gamesPerFile = len(round_files) // num_splits
+    print(gamesPerFile)
     lastMarker = 0
-    for marker in range(gamesPerFile, len(round_files), gamesPerFile):
+    for marker in range(gamesPerFile, len(round_files)+1, gamesPerFile):
         fullData = []
         fullScores = []
         fullMaps = []

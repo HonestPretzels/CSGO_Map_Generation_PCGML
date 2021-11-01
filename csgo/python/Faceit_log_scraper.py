@@ -22,8 +22,8 @@ hub_ids = {
 
 # USAGE:
 # python ./Faceit_log_scraper.py <batchCount> <offset> <demoPath> <dataPath> -b? -s? -g? -d?
-# batchCount -> the number of 100 demo batches to fetch per hub
-# offset -> the number of 100 demo batches to skip
+# batchCount -> the number of 10 demo batches to fetch per hub
+# offset -> the number of 10 demo batches to skip
 # demoPath -> the path to save demos to
 # dataPath -> the path to save data to
 # -b -> include bronze hub
@@ -47,8 +47,8 @@ def main():
         chosenHubs.append(hub_ids["MythicDiamond"])
     
     for hubId in chosenHubs:
-        for i in range(0,batchCount*100, 100):
-            requestString = '%s/%s/%s/%s?%s=%d&%s=%d'%(FACEIT_API, 'hubs', hubId, 'matches', 'offset', offset*100 + i, 'limit', 100)
+        for i in range(0,batchCount*10, 10):
+            requestString = '%s/%s/%s/%s?%s=%d&%s=%d'%(FACEIT_API, 'hubs', hubId, 'matches', 'offset', offset*10 + i, 'limit', 10)
             print(requestString)
             JSONmatches = requests.get(requestString, headers=headers).content
             matches = json.loads(JSONmatches)['items']
@@ -69,6 +69,8 @@ def main():
                         with open('%s/%s.dem'%(demosPath, matchId), 'wb') as out:
                             for line in unZipped:
                                 out.write(line)
+                    else:
+                        print('\nbad response')
 
                 
                 

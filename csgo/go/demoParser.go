@@ -363,7 +363,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	for _, file := range demos[1:] {
+	for _, file := range demos {
 		var extension = filepath.Ext(file)
 		log_output := sequencesPath + "\\" + filepath.Base(file)[0:len(filepath.Base(file))-len(extension)] + ".npy"
 		round_output := roundsPath + "\\" + filepath.Base(file)[0:len(filepath.Base(file))-len(extension)] + "_rounds.npy"
