@@ -28,7 +28,7 @@ def getAllFiles(p):
     return [f for f in os.listdir(p) if path.isfile(path.join(p, f))]
 
 # Adapted from here https://towardsdatascience.com/thousands-of-csv-files-keras-and-tensorflow-96182f7fabac on 06/10/2021
-def generate_batches(dataFiles, labelFiles, batch_size, doSwap = False, onlyPlayers = False):
+def generate_batches(dataFiles, labelFiles, batch_size):
     counter = 0
 
     while counter < len(dataFiles):
@@ -38,22 +38,12 @@ def generate_batches(dataFiles, labelFiles, batch_size, doSwap = False, onlyPlay
         data = np.load(xname, allow_pickle=True)
         data = data.reshape(data.shape[0]*30, 2, 128, 128)
         labels = np.load(yname, allow_pickle=True)
-        labels = labels.reshape(labels.shape[0]*30, 1)
+        labels = labels.reshape(labels.shape[0]*30, 2, 128, 128)
         maxLength = data.shape[0] - (data.shape[0] % batch_size)
         for i in range(0, maxLength, batch_size):
             x = data[i:i+batch_size]
             y = labels[i:i+batch_size]
-            # if doSwap:
-            # # Swap the data order
-            #     y = np.zeros(x.shape)
-            #     y[:,0:10] = x[:,5:15]
-            #     y[:,10:15] = x[:,0:5]
-            #     yield y, y
-            # elif onlyPlayers:
-            #     y = np.zeros((x.shape[0], 10, x.shape[2], x.shape[3]))
-            #     y[:] = x[:, 5:15]
-            #     yield y, y
-            # else:
+            
             yield x, y
 
 def genModel():
@@ -61,20 +51,23 @@ def genModel():
     input_img = keras.Input(shape=(2,128,128))
     # Encoder
     encoded = layers.Conv2D(16, (3,3), strides=2, activation="relu", padding="same", data_format="channels_first")(input_img)
-    # encoded = layers.MaxPooling2D((2,2), padding="same", data_format="channels_first")(encoded)
     encoded = layers.Conv2D(32, (3,3), strides=2, activation="relu", padding="same", data_format="channels_first")(encoded)
-    # encoded = layers.MaxPooling2D((2,2), padding="same", data_format="channels_first")(encoded)
     encoded = layers.Conv2D(64, (3,3), strides=2, activation="relu", padding="same", data_format="channels_first")(encoded)
-    # encoded = layers.MaxPooling2D((2,2), padding="same", data_format="channels_first")(encoded)
+    encoded = layers.Conv2D(64, (3,3), strides=2, activation="relu", padding="same", data_format="channels_first")(encoded)
+    latent = layers.Flatten()(encoded)
+    # latent = layers.Dense(64*8*8, activation="softmax")(latent)
+    
 
     # Decoder
-    # decoded = layers.Conv2DTranspose(64, (3,3), strides=2, activation="relu", data_format="channels_first", padding="same")(encoded)
-    # decoded = layers.Conv2DTranspose(32, (3,3), strides=2, activation="relu", data_format="channels_first", padding="same")(decoded)
-    # decoded = layers.Conv2DTranspose(16, (3,3), strides=2, activation="relu", data_format="channels_first", padding="same")(decoded)
-    # decoded = layers.Conv2D(2, (3,3), activation="relu", padding="same", data_format="channels_first")(decoded)
-    encoded = layers.Flatten()(encoded)
-    decoded = layers.Dense(32, activation="relu")(encoded)
-    decoded = layers.Dense(1, activation="linear")(encoded)
+    decoded = layers.Reshape((64,8,8))(latent)
+    decoded = layers.Conv2DTranspose(64, (3,3), strides=2, activation="relu", data_format="channels_first", padding="same")(decoded)
+    decoded = layers.Conv2DTranspose(64, (3,3), strides=2, activation="relu", data_format="channels_first", padding="same")(decoded)
+    decoded = layers.Conv2DTranspose(32, (3,3), strides=2, activation="relu", data_format="channels_first", padding="same")(decoded)
+    decoded = layers.Conv2DTranspose(16, (3,3), strides=2, activation="relu", data_format="channels_first", padding="same")(decoded)
+    decoded = layers.Conv2D(2, (3,3), activation="relu", padding="same", data_format="channels_first")(decoded)
+    # encoded = layers.Flatten()(encoded)
+    # decoded = layers.Dense(32, activation="relu")(encoded)
+    # decoded = layers.Dense(1, activation="linear")(encoded)
     autoencoder = keras.Model(input_img, decoded)
 
     return autoencoder
@@ -110,9 +103,9 @@ def main():
     
 
     trainDataSet = tf.data.Dataset.from_generator(
-        generator=lambda: generate_batches(trainDataX, trainDataY, batchSize, onlyPlayers=True),
+        generator=lambda: generate_batches(trainDataX, trainDataY, batchSize),
         output_types=(np.float32, np.float32),
-        output_shapes=([batchSize,2,128,128], [batchSize,1])
+        output_shapes=([batchSize,2,128,128], [batchSize,2,128,128])
     )
 
     autoencoder = genModel()

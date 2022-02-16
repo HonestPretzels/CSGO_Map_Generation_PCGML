@@ -16,14 +16,17 @@ def visualize(preds, reals):
             for x in range(preds.shape[2]):
                 # Display the real values
                 r = reals[y][t][x]
+                print(r.shape)
                 # Third layer is empty
                 g = np.zeros((128,128))
                 # Blue for preds
-                b = preds[y][0][x]
+                b = preds[y][t][x]
+                print(b.shape)
                 
                 s = sum(b.flatten())
                 if s > 0.1:
                     b *= 255
+                    r *= 255
                     img = np.dstack((r,g,b))
                     r_img = Image.fromarray((img).astype(np.uint8))
                     plt.imshow(r_img)
@@ -37,9 +40,9 @@ def test(datasetPath, labelsPath, checkpointPath):
     batchSize = 30
     
     testDataSet = tf.data.Dataset.from_generator(
-        generator=lambda: generate_batches(testDataFiles, testDataLabels, batchSize, onlyPlayers = True),
+        generator=lambda: generate_batches(testDataFiles, testDataLabels, batchSize),
         output_types=(np.float32, np.float32),
-        output_shapes=([batchSize,2,128,128], [batchSize,1])
+        output_shapes=([batchSize,2,128,128], [batchSize,2,128,128])
     )
     
     AE = genModel()
@@ -56,19 +59,18 @@ def test(datasetPath, labelsPath, checkpointPath):
         gc.collect()
         K.clear_session()
         # # Memory constraint hack for now
-        # if count >= 90:
-        #     break
-    avg_diff = 0
-    max_diff = 0
-    for i in range(len(preds)):
-        for j in range(len(preds[0])):
-            diff = abs(preds[i][j] - real[i][j])
-            avg_diff += diff / (len(preds)*30)
-            if diff > max_diff:
-                max_diff = diff
+        if count >= 200:
+            break
+    # avg_diff = 0
+    # max_diff = 0
+    # for i in range(len(preds)):
+    #     for j in range(len(preds[0])):
+            # diff = abs(preds[i][j] - real[i][j])
+            # avg_diff += diff / (len(preds)*30)
+            # if diff > max_diff:
+            #     max_diff = diff
                 
-    print(avg_diff, max_diff)
-    # visualize(np.array(preds), np.array(real))
+    visualize(np.array(preds[80:]), np.array(real[80:]))
 
 if __name__ == "__main__":
     dataSet = sys.argv[1]
