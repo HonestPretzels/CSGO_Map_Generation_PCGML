@@ -34,15 +34,15 @@ def visualize(preds, reals):
             
     
 def test(datasetPath, labelsPath, checkpointPath):
-    testDataFiles = [path.join(datasetPath, f) for f in getAllFiles(datasetPath)]
-    testDataLabels = [path.join(labelsPath, f) for f in getAllFiles(labelsPath)]
-    
+    testDataFiles = [path.join(datasetPath, f) for f in getAllFiles(datasetPath)][5:11]
+    testDataLabels = [path.join(labelsPath, f) for f in getAllFiles(labelsPath)][5:11]
+    print(testDataFiles)
     batchSize = 30
     
     testDataSet = tf.data.Dataset.from_generator(
         generator=lambda: generate_batches(testDataFiles, testDataLabels, batchSize),
         output_types=(np.float32, np.float32),
-        output_shapes=([batchSize,2,128,128], [batchSize,2,128,128])
+        output_shapes=([batchSize,3,128,128], [batchSize,2,128,128])
     )
     
     AE = genModel()

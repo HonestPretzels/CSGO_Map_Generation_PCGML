@@ -36,7 +36,7 @@ def generate_batches(dataFiles, labelFiles, batch_size):
         yname = labelFiles[counter]
         counter += 1
         data = np.load(xname, allow_pickle=True)
-        data = data.reshape(data.shape[0]*30, 2, 128, 128)
+        data = data.reshape(data.shape[0]*30, 3, 128, 128)
         labels = np.load(yname, allow_pickle=True)
         labels = labels.reshape(labels.shape[0]*30, 2, 128, 128)
         maxLength = data.shape[0] - (data.shape[0] % batch_size)
@@ -48,22 +48,24 @@ def generate_batches(dataFiles, labelFiles, batch_size):
 
 def genModel():
     # Currently based off the architecture here: https://keras.io/examples/vision/autoencoder/
-    input_img = keras.Input(shape=(2,128,128))
+    input_img = keras.Input(shape=(3,128,128))
     # Encoder
-    encoded = layers.Conv2D(16, (3,3), strides=2, activation="relu", padding="same", data_format="channels_first")(input_img)
+    encoded = layers.Conv2D(8, (3,3), strides=2, activation="relu", padding="same", data_format="channels_first")(input_img)
+    encoded = layers.Conv2D(16, (3,3), strides=2, activation="relu", padding="same", data_format="channels_first")(encoded)
     encoded = layers.Conv2D(32, (3,3), strides=2, activation="relu", padding="same", data_format="channels_first")(encoded)
-    encoded = layers.Conv2D(64, (3,3), strides=2, activation="relu", padding="same", data_format="channels_first")(encoded)
-    encoded = layers.Conv2D(64, (3,3), strides=2, activation="relu", padding="same", data_format="channels_first")(encoded)
+    encoded = layers.Conv2D(32, (3,3), strides=2, activation="relu", padding="same", data_format="channels_first")(encoded)
+    encoded = layers.Conv2D(32, (3,3), strides=2, activation="relu", padding="same", data_format="channels_first")(encoded)
     latent = layers.Flatten()(encoded)
-    # latent = layers.Dense(64*8*8, activation="softmax")(latent)
+    latent = layers.Dense(512, activation="softmax")(latent)
     
 
     # Decoder
-    decoded = layers.Reshape((64,8,8))(latent)
-    decoded = layers.Conv2DTranspose(64, (3,3), strides=2, activation="relu", data_format="channels_first", padding="same")(decoded)
-    decoded = layers.Conv2DTranspose(64, (3,3), strides=2, activation="relu", data_format="channels_first", padding="same")(decoded)
+    decoded = layers.Reshape((32,4,4))(latent)
+    decoded = layers.Conv2DTranspose(32, (3,3), strides=2, activation="relu", data_format="channels_first", padding="same")(decoded)
+    decoded = layers.Conv2DTranspose(32, (3,3), strides=2, activation="relu", data_format="channels_first", padding="same")(decoded)
     decoded = layers.Conv2DTranspose(32, (3,3), strides=2, activation="relu", data_format="channels_first", padding="same")(decoded)
     decoded = layers.Conv2DTranspose(16, (3,3), strides=2, activation="relu", data_format="channels_first", padding="same")(decoded)
+    decoded = layers.Conv2DTranspose(8, (3,3), strides=2, activation="relu", data_format="channels_first", padding="same")(decoded)
     decoded = layers.Conv2D(2, (3,3), activation="relu", padding="same", data_format="channels_first")(decoded)
     # encoded = layers.Flatten()(encoded)
     # decoded = layers.Dense(32, activation="relu")(encoded)
@@ -83,7 +85,7 @@ def train(model: keras.Model, trainData, batchSize, checkpointPath):
         model.load_weights(checkpointPath)
     model.fit(trainData,
         verbose=1,
-        epochs=10,
+        epochs=3,
         batch_size=batchSize,
         shuffle=True,
         callbacks=[model_checkpoint_callback]
@@ -105,7 +107,7 @@ def main():
     trainDataSet = tf.data.Dataset.from_generator(
         generator=lambda: generate_batches(trainDataX, trainDataY, batchSize),
         output_types=(np.float32, np.float32),
-        output_shapes=([batchSize,2,128,128], [batchSize,2,128,128])
+        output_shapes=([batchSize,3,128,128], [batchSize,2,128,128])
     )
 
     autoencoder = genModel()

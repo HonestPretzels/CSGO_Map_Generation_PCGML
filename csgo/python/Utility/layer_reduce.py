@@ -11,7 +11,7 @@ import keras.backend as K
 def getAllFiles(p):
     return [f for f in os.listdir(p) if path.isfile(path.join(p, f))]
 
-def main():
+def main(isLabel = False):
     inputPath = sys.argv[1]
     outputPath = sys.argv[2]
     
@@ -28,21 +28,26 @@ def main():
         players = np.sum(players, axis=3)
         # Clamp to 0 or 1
         players = np.where(players > 0.0001, 1, 0)
-        players = np.reshape(players, (players.shape[0], players.shape[1], 2*128*128))
-        players = np.sum(players, axis=2)/10
-        
-        fullPlayers = np.zeros((level.shape))
-        for split in range(len(players)):
-            for second in range(len(players[split])):
-                fullPlayers[split,second].fill(players[split,second])
-        
-        output = np.stack((level, fullPlayers), axis=2)
-        print(output.shape)
+        if isLabel:
+            players = np.reshape(players, (players.shape[0], players.shape[1], 2*128*128))
+            players = np.sum(players, axis=2)/10
+            
+            fullPlayers = np.zeros((level.shape))
+            for split in range(len(players)):
+                for second in range(len(players[split])):
+                    fullPlayers[split,second].fill(players[split,second])
+            
+            output = np.stack((level, fullPlayers), axis=2)
+            print(output.shape)
+        else:
+            level = np.reshape(level, (level.shape[0], level.shape[1], 1, 128, 128))
+            print(level.shape, players.shape)
+            output = np.concatenate((level, players), axis=2)
 
         
-        # ## Visualization Code
+        ## Visualization Code
         # for second in range(output.shape[1]):
-        #     for team in range(2):
+        #     for team in range(output.shape[2]):
         #         r = output[0][second][team] * 255
         #         g = np.zeros((128,128))
         #         b = np.zeros((128,128))
@@ -57,4 +62,4 @@ def main():
     
 
 if __name__ == "__main__":
-    main()
+    main(True)
