@@ -37,7 +37,7 @@ def test(datasetPath, labelsPath, checkpointPath):
     testDataFiles = [path.join(datasetPath, f) for f in getAllFiles(datasetPath)][5:11]
     testDataLabels = [path.join(labelsPath, f) for f in getAllFiles(labelsPath)][5:11]
     print(testDataFiles)
-    batchSize = 30
+    batchSize = 2
     
     testDataSet = tf.data.Dataset.from_generator(
         generator=lambda: generate_batches(testDataFiles, testDataLabels, batchSize),
@@ -70,7 +70,7 @@ def test(datasetPath, labelsPath, checkpointPath):
             # if diff > max_diff:
             #     max_diff = diff
                 
-    visualize(np.array(preds[80:]), np.array(real[80:]))
+    visualize(np.array(preds), np.array(real))
 
 if __name__ == "__main__":
     dataSet = sys.argv[1]

@@ -1,5 +1,5 @@
 import os
-import keras
+from tensorflow import keras
 from keras import layers
 import numpy as np
 import tensorflow as tf
@@ -7,7 +7,7 @@ import sys
 import os.path as path
 
 FLAT_LENGTH = 15*128*128
-BATCH_SIZE = 30
+BATCH_SIZE = 2
 WEIGHT_CONSTANT = np.ones((BATCH_SIZE, 15, 128, 128), dtype=np.float32)
 # Multiply only the player dimensions by 1000 to increase their importance
 # WEIGHT_CONSTANT[:,5:15,:,:] *= 100
@@ -79,13 +79,14 @@ def train(model: keras.Model, trainData, batchSize, checkpointPath):
         filepath=checkpointPath,
         save_weights_only=True)
 
-    model.compile(optimizer="adam", loss="mean_squared_error")
+    opt = keras.optimizers.Adam(learning_rate=0.0001)
+    model.compile(optimizer=opt, loss="mean_squared_error")
     model.summary()
     if os.listdir(checkpointPath):
         model.load_weights(checkpointPath)
     model.fit(trainData,
         verbose=1,
-        epochs=3,
+        epochs=15,
         batch_size=batchSize,
         shuffle=True,
         callbacks=[model_checkpoint_callback]
