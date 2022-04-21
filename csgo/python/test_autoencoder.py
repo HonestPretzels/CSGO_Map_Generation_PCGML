@@ -15,7 +15,8 @@ def visualize(preds, reals):
         for t in range(preds.shape[1]):
             for x in range(preds.shape[2]):
                 # Display the real values
-                r = reals[y][t][x]
+                # r = reals[y][t][x]
+                r = np.zeros((128,128))
                 print(r.shape)
                 # Third layer is empty
                 g = np.zeros((128,128))
@@ -34,8 +35,8 @@ def visualize(preds, reals):
             
     
 def test(datasetPath, labelsPath, checkpointPath):
-    testDataFiles = [path.join(datasetPath, f) for f in getAllFiles(datasetPath)][5:11]
-    testDataLabels = [path.join(labelsPath, f) for f in getAllFiles(labelsPath)][5:11]
+    testDataFiles = [path.join(datasetPath, f) for f in getAllFiles(datasetPath)][2:]
+    testDataLabels = [path.join(labelsPath, f) for f in getAllFiles(labelsPath)][2:]
     print(testDataFiles)
     batchSize = 2
     
@@ -70,7 +71,7 @@ def test(datasetPath, labelsPath, checkpointPath):
             # if diff > max_diff:
             #     max_diff = diff
                 
-    visualize(np.array(preds), np.array(real))
+    visualize(np.array(preds)[180:], np.array(real)[180:])
 
 if __name__ == "__main__":
     dataSet = sys.argv[1]

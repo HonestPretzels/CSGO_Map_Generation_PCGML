@@ -21,7 +21,7 @@ def main(isLabel = False):
         # Get only player layers
         x = np.load(ifp)
         players = x[:,:,5:15]
-        level = x[:,:,0] / 255
+        level = x[:,:,0]
         # Separate teams
         players = np.reshape(players, (players.shape[0], players.shape[1], 2, 5, players.shape[3], players.shape[4]))
         # Sum the layers
@@ -45,7 +45,7 @@ def main(isLabel = False):
             output = np.concatenate((level, players), axis=2)
 
         
-        ## Visualization Code
+        # # Visualization Code
         # for second in range(output.shape[1]):
         #     for team in range(output.shape[2]):
         #         r = output[0][second][team] * 255
