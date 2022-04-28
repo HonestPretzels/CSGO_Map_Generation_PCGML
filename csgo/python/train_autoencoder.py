@@ -56,7 +56,7 @@ def genModel():
     encoded = layers.Conv2D(32, (3,3), strides=2, activation="relu", padding="same", data_format="channels_first")(encoded)
     encoded = layers.Conv2D(32, (3,3), strides=2, activation="relu", padding="same", data_format="channels_first")(encoded)
     latent = layers.Flatten()(encoded)
-    latent = layers.Dense(512, activation="softmax")(latent)
+    latent = layers.Dense(512, activation="softmax", name="latentspace")(latent)
     
 
     # Decoder
@@ -71,8 +71,9 @@ def genModel():
     # decoded = layers.Dense(32, activation="relu")(encoded)
     # decoded = layers.Dense(1, activation="linear")(encoded)
     autoencoder = keras.Model(input_img, decoded)
+    encoder = keras.Model(input_img, latent)
 
-    return autoencoder
+    return autoencoder, encoder
 
 def train(model: keras.Model, trainData, batchSize, checkpointPath):
     model_checkpoint_callback = keras.callbacks.ModelCheckpoint(
@@ -111,7 +112,7 @@ def main():
         output_shapes=([batchSize,3,128,128], [batchSize,2,128,128])
     )
 
-    autoencoder = genModel()
+    autoencoder, _ = genModel()
     train(autoencoder, trainDataSet, 30, checkpointPath)
 
 if __name__ == "__main__":

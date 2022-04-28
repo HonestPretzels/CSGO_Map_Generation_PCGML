@@ -28,6 +28,7 @@ def main(isLabel = False):
         players = np.sum(players, axis=3)
         # Clamp to 0 or 1
         players = np.where(players > 0.0001, 1, 0)
+        print(players.shape)
         if isLabel:
             players = np.reshape(players, (players.shape[0], players.shape[1], 2*128*128))
             players = np.sum(players, axis=2)/10
@@ -55,11 +56,11 @@ def main(isLabel = False):
         #         r_img = Image.fromarray((img).astype(np.uint8))
         #         plt.imshow(r_img)
         #         plt.show()
-        
+        print(output.shape)
         np.save(ofp, output)
         gc.collect()
         K.clear_session()
     
 
 if __name__ == "__main__":
-    main(True)
+    main(False)
