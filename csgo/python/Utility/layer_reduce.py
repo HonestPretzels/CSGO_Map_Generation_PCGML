@@ -28,7 +28,6 @@ def main(isLabel = False):
         players = np.sum(players, axis=3)
         # Clamp to 0 or 1
         players = np.where(players > 0.0001, 1, 0)
-        print(players.shape)
         if isLabel:
             players = np.reshape(players, (players.shape[0], players.shape[1], 2*128*128))
             players = np.sum(players, axis=2)/10
@@ -39,7 +38,7 @@ def main(isLabel = False):
                     fullPlayers[split,second].fill(players[split,second])
             
             output = np.stack((level, fullPlayers), axis=2)
-            print(output.shape)
+            print(level.shape, players.shape)
         else:
             level = np.reshape(level, (level.shape[0], level.shape[1], 1, 128, 128))
             print(level.shape, players.shape)
@@ -63,4 +62,4 @@ def main(isLabel = False):
     
 
 if __name__ == "__main__":
-    main(False)
+    main(True)

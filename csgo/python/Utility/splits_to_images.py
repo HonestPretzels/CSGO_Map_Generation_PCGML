@@ -57,7 +57,7 @@ def processArray(seq, maps, images, outPath):
     # Mapsize, 
     # Mapsize
     split_outPut = np.zeros((len(seq),30,15, MAP_SCALE, MAP_SCALE), dtype=np.float32)
-    for split in tqdm(range(len(seq))):
+    for split in range(len(seq)):
         split_data = seq[split]
         split_map = REVERSE_MAP_MAP[maps[split]]
         L1 = "%s_main_floor.png"%split_map
@@ -116,7 +116,7 @@ def processArray(seq, maps, images, outPath):
                     split_outPut[split][second][teamOffset + 1][posY][posX] += PLAYER_OPACITY
                 else: # Standard
                     split_outPut[split][second][teamOffset][posY][posX] += PLAYER_OPACITY
-
+    print(split_outPut.shape, outPath)
     np.save(outPath, split_outPut)
 
 
@@ -131,11 +131,12 @@ def main():
     SplitFiles = getAllFilePaths(splitFolder)
     MapFiles = getAllFilePaths(mapsFolder)
     images = getAllFilePaths(imageFolder)
-    for idx in tqdm(range(len(SplitFiles))):
+    for idx in range(len(SplitFiles)):
         sequenceArr = np.load(SplitFiles[idx])
         mapsArr = np.load(MapFiles[idx])
 
-        processArray(sequenceArr, mapsArr, images, path.join(outFolder, "data_%d.npy"%idx))
+        name = path.basename(SplitFiles[idx])
+        processArray(sequenceArr, mapsArr, images, path.join(outFolder, name))
 
 if __name__ == "__main__":
     main()

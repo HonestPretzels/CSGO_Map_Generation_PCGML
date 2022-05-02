@@ -3,6 +3,7 @@ import os.path as path
 import numpy as np
 import tensorflow as tf
 from keras import layers
+from keras.utils.np_utils import to_categorical  
 from tensorflow import keras
 
 def getAllFiles(p):
@@ -11,13 +12,15 @@ def getAllFiles(p):
 def getModel():
     inputLayer = layers.Input(512)
     
-    x = layers.LSTM(128, dropout=0.8, return_sequences=True)(inputLayer)
-    x = layers.LSTM(128)(x)
+    x = layers.Dense(256, activation="relu")(inputLayer)
+    x = layers.Dense(128, activation="relu")(x)
     x = layers.Dense(64, activation="relu")(x)
+    x = layers.Dense(32, activation="relu")(x)
     out = layers.Dense(2, activation="sigmoid")(x)
     
     model = keras.Model(inputLayer, out)
-    model.compile(optimizer="adam", learning_rate=0.0001, loss="binary_crossentropy")
+    opt = keras.optimizers.Adam(learning_rate=0.00001)
+    model.compile(optimizer=opt, loss="categorical_crossentropy")
     
     return model
     
@@ -29,14 +32,11 @@ def generate_batches(dataFiles, labelFiles, batchSize):
         yname = labelFiles[counter]
         counter += 1
         data = np.load(xname, allow_pickle=True)
-        data = data.reshape(data.shape[0]*30, 3, 128, 128)
         labels = np.load(yname, allow_pickle=True)
-        labels = labels.reshape(labels.shape[0]*30, 2, 128, 128)
         maxLength = data.shape[0] - (data.shape[0] % batchSize)
         for i in range(0, maxLength, batchSize):
             x = data[i:i+batchSize]
             y = labels[i:i+batchSize]
-            
             yield x, y
 
 def train(model: keras.Model, trainData, batchSize, checkpointPath):
@@ -66,13 +66,13 @@ def main():
     
     
     trainDataSet = tf.data.Dataset.from_generator(
-        generator=lambda: generate_batches(trainDataX, trainDataY, 30),
+        generator=lambda: generate_batches(trainDataX, trainDataY, 32),
         output_types=(np.float32, np.float32),
-        output_shapes=([30,3,128,128], [30,2,128,128])
+        output_shapes=([32,512], [32,2])
     )
 
     autoencoder = getModel()
-    train(autoencoder, trainDataSet, 30, checkpointPath)
+    train(autoencoder, trainDataSet, 32, checkpointPath)
 
 if __name__ == "__main__":
     main()

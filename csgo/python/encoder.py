@@ -7,6 +7,7 @@ from PIL import Image
 import os.path as path
 import tensorflow as tf
 from train_autoencoder import generate_batches, getAllFiles, genModel
+from keras.utils.np_utils import to_categorical  
 
 # gameBreaks refers to the delinieators between the games and is an array of the number of splits in each game
 
@@ -15,7 +16,8 @@ def visualize(preds, reals):
         for t in range(preds.shape[1]):
             for x in range(preds.shape[2]):
                 # Display the real values
-                r = reals[y][t][x]
+                # r = reals[y][t][x]
+                r = np.zeros((128,128))
                 print(r.shape)
                 # Third layer is empty
                 g = np.zeros((128,128))
@@ -33,48 +35,33 @@ def visualize(preds, reals):
                     plt.show()
             
     
-def test(datasetPath, labelsPath, checkpointPath):
+def test(datasetPath, labelsPath, checkpointPath, output):
     testDataFiles = [path.join(datasetPath, f) for f in getAllFiles(datasetPath)]
     testDataLabels = [path.join(labelsPath, f) for f in getAllFiles(labelsPath)]
-    
-    batchSize = 30
-    
-    testDataSet = tf.data.Dataset.from_generator(
-        generator=lambda: generate_batches(testDataFiles, testDataLabels, batchSize),
-        output_types=(np.float32, np.float32),
-        output_shapes=([batchSize,3,128,128], [batchSize,2,128,128])
-    )
-    
-    AE,_ = genModel()
+    print(testDataFiles)
+    AE, Encoder = genModel()
     AE.load_weights(checkpointPath).expect_partial()
     AE.summary()
-    preds = []
-    real = []
-    count = 0
-    for batch in testDataSet:
-        count += 1
-        # Memory leak happens if I don't do this batch for loop and clear the session
-        preds.append(AE.predict(batch[0], verbose=1))
-        real.append(batch[1])
+    Encoder.summary()
+    for i in range(len(testDataFiles)):
+        x = np.load(testDataFiles[i])
+        x = x.reshape(x.shape[0]*30, 3, 128, 128)
+        y = np.load(testDataLabels[i])
+        y = np.repeat(y, 30)
+        y = y.reshape(y.shape[0], 1)
+        y = to_categorical(y, 2)
+        print(testDataFiles[i], testDataLabels[i], y.shape, x.shape)
+        preds = Encoder.predict(x, verbose=1)
+        np.save(path.join(path.join(output,"Data"), path.basename(testDataFiles[i])), preds)
+        np.save(path.join(path.join(output, "Labels"), path.basename(testDataLabels[i])), y)
         gc.collect()
         K.clear_session()
-        # # Memory constraint hack for now
-        if count >= 200:
-            break
-    # avg_diff = 0
-    # max_diff = 0
-    # for i in range(len(preds)):
-    #     for j in range(len(preds[0])):
-            # diff = abs(preds[i][j] - real[i][j])
-            # avg_diff += diff / (len(preds)*30)
-            # if diff > max_diff:
-            #     max_diff = diff
-                
-    visualize(np.array(preds[1:]), np.array(real[1:]))
+    
 
 if __name__ == "__main__":
     dataSet = sys.argv[1]
     labels = sys.argv[2]
     checkpoint = sys.argv[3]
+    output = sys.argv[4]
     
-    test(dataSet, labels, checkpoint)
+    test(dataSet, labels, checkpoint, output)
