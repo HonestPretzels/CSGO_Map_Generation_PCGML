@@ -12,7 +12,10 @@ def main():
         p = path.join(sys.argv[1], f)
         x = np.load(p)
         x = x.reshape((x.shape[0]//30, 30,-1))
-        np.save(p, x)
+        x = np.delete(x, np.arange(1,30), axis=1)
+        x = x.reshape((x.shape[0],2))
+        print(x.shape)
+        np.save(path.join(sys.argv[2], f), x)
         
 if __name__ == "__main__":
     main()

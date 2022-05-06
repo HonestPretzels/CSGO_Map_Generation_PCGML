@@ -8,10 +8,10 @@ def getAllFiles(p):
     return [f for f in os.listdir(p) if path.isfile(path.join(p, f))]
 
 def getModel():
-    inputLayer = layers.Input(512)
+    inputLayer = layers.Input((30,512))
     
-    x = layers.Dense(256, activation="relu")(inputLayer)
-    x = layers.Dense(128, activation="relu")(x)
+    # x = layers.LSTM(128, dropout=0.8, return_sequences=True)(inputLayer)
+    x = layers.LSTM(128)(inputLayer)
     x = layers.Dense(64, activation="relu")(x)
     x = layers.Dense(32, activation="relu")(x)
     out = layers.Dense(2, activation="sigmoid")(x)

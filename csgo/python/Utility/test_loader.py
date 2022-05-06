@@ -11,9 +11,16 @@ def getAllFilePaths(p):
 def getAllFiles(p):
     return [f for f in os.listdir(p) if path.isfile(path.join(p, f))]
 
-xfiles = getAllFilePaths('F:\\CSGO_Map_Generator\\CleanDataSetApr2022\\ReducedImagesNoZeros\\Labels\\')
-x = np.load(xfiles[1])
-print(x.shape)
+xfiles = getAllFilePaths('F:\\CSGO_Map_Generator\\CleanDataSetApr2022\\Latent_encodingNoZeros\\CombinedLabelsSplitFormat\\')
+x = np.load(xfiles[0])
+wins = 0
+losses = 0
+for i in x:
+    if i[0] == 1:
+        wins += 1
+    else:
+        losses += 1
+print(wins, losses)
 # x = np.load('F:\\CSGO_Map_Generator\\CleanDataSetApr2022\\Latent_encoding\\latent_encoding_3.npy', allow_pickle=True)
 # print(x.shape)
 
