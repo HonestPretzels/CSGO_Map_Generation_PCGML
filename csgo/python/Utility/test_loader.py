@@ -11,27 +11,27 @@ def getAllFilePaths(p):
 def getAllFiles(p):
     return [f for f in os.listdir(p) if path.isfile(path.join(p, f))]
 
-xfiles = getAllFilePaths('F:\\CSGO_Map_Generator\\CleanDataSetApr2022\\Latent_encodingNoZeros\\CombinedLabelsSplitFormat\\')
-x = np.load(xfiles[0])
-wins = 0
-losses = 0
-for i in x:
-    if i[0] == 1:
-        wins += 1
-    else:
-        losses += 1
-print(wins, losses)
-# x = np.load('F:\\CSGO_Map_Generator\\CleanDataSetApr2022\\Latent_encoding\\latent_encoding_3.npy', allow_pickle=True)
-# print(x.shape)
+# xfiles = getAllFilePaths('F:\\CSGO_Map_Generator\\CleanDataSetApr2022\\Latent_encodingNoZeros\\CombinedLabelsSplitFormat\\')
+# x = np.load(xfiles[0])
+# wins = 0
+# losses = 0
+# for i in x:
+#     if i[0] == 1:
+#         wins += 1
+#     else:
+#         losses += 1
+# print(wins, losses)
+x = np.load('F:\\CSGO_Map_Generator\\Dev_data_subset\\FullAutoencoderDataSet\\training_data\\data_0_2.npy', allow_pickle=True)
+y = np.load('F:\\CSGO_Map_Generator\\Dev_data_subset\\FullAutoencoderDataSet\\training_labels\\data_0_2.npy', allow_pickle=True)
+print(x.shape, y.shape)
 
-# d = np.load('F:\\CSGO_Map_Generator\\CleanDataSetApr2022\\PreProcessed\\data\\data_11.npy')
-# print(d.shape)
-
-# y = np.load('F:\\CSGO_Map_Generator\\CleanDataSetApr2022\\PreProcessed\\scores\\scores_11.npy')
-# print(y.shape)
-# y = np.repeat(y, 30)
-# print(y.shape)
-# y = y.reshape(y.shape[0], 1)
-# print(y.shape)
-# y = to_categorical(y, 2)
-# print(y.shape)
+# Visualization Code
+for second in range(x.shape[1]):
+    for team in range(x.shape[2]):
+        r = x[0][second][team] * 255
+        g = y[0][second][team] * 255
+        b = np.zeros((128,128))
+        img = np.dstack((r,g,b))
+        r_img = Image.fromarray((img).astype(np.uint8))
+        plt.imshow(r_img)
+        plt.show()

@@ -2,8 +2,6 @@ import numpy as np
 import sys
 import os
 import os.path as path
-from matplotlib import pyplot as plt
-from PIL import Image
 import gc
 import keras.backend as K
 
@@ -29,33 +27,26 @@ def main(isLabel = False):
         # Clamp to 0 or 1
         players = np.where(players > 0.0001, 1, 0)
         if isLabel:
-            players = np.reshape(players, (players.shape[0], players.shape[1], 2*128*128))
-            players = np.sum(players, axis=2)/10
+            players = np.reshape(players, (players.shape[0], players.shape[1], 2, 128*128))
+            players = np.sum(players, axis=3)/5
             
-            fullPlayers = np.zeros((level.shape))
+            fullPlayers = np.zeros((level.shape[0], level.shape[1], 2, level.shape[2], level.shape[3]))
             for split in range(len(players)):
                 for second in range(len(players[split])):
-                    fullPlayers[split,second].fill(players[split,second])
+                    for team in range(len(players[split,second])):
+                        fullPlayers[split,second,team].fill(players[split,second,team])
+                        
+            level = np.reshape(level, (level.shape[0], level.shape[1], 1, level.shape[2], level.shape[3]))
+            output = np.concatenate((level, fullPlayers), axis=2)
             
-            output = np.stack((level, fullPlayers), axis=2)
-            print(level.shape, players.shape)
+            print(level.shape, players.shape, fullPlayers.shape, output.shape)
         else:
             level = np.reshape(level, (level.shape[0], level.shape[1], 1, 128, 128))
-            print(level.shape, players.shape)
             output = np.concatenate((level, players), axis=2)
+            print(level.shape, players.shape, output.shape)
 
         
-        # # Visualization Code
-        # for second in range(output.shape[1]):
-        #     for team in range(output.shape[2]):
-        #         r = output[0][second][team] * 255
-        #         g = np.zeros((128,128))
-        #         b = np.zeros((128,128))
-        #         img = np.dstack((r,g,b))
-        #         r_img = Image.fromarray((img).astype(np.uint8))
-        #         plt.imshow(r_img)
-        #         plt.show()
-        print(output.shape)
+        
         np.save(ofp, output)
         gc.collect()
         K.clear_session()

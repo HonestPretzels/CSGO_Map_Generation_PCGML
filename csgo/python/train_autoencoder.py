@@ -38,7 +38,7 @@ def generate_batches(dataFiles, labelFiles, batch_size):
         data = np.load(xname, allow_pickle=True)
         data = data.reshape(data.shape[0]*30, 3, 128, 128)
         labels = np.load(yname, allow_pickle=True)
-        labels = labels.reshape(labels.shape[0]*30, 2, 128, 128)
+        labels = labels.reshape(labels.shape[0]*30, 3, 128, 128)
         maxLength = data.shape[0] - (data.shape[0] % batch_size)
         for i in range(0, maxLength, batch_size):
             x = data[i:i+batch_size]
@@ -66,7 +66,7 @@ def genModel():
     decoded = layers.Conv2DTranspose(32, (3,3), strides=2, activation="relu", data_format="channels_first", padding="same")(decoded)
     decoded = layers.Conv2DTranspose(16, (3,3), strides=2, activation="relu", data_format="channels_first", padding="same")(decoded)
     decoded = layers.Conv2DTranspose(8, (3,3), strides=2, activation="relu", data_format="channels_first", padding="same")(decoded)
-    decoded = layers.Conv2D(2, (3,3), activation="relu", padding="same", data_format="channels_first")(decoded)
+    decoded = layers.Conv2D(3, (3,3), activation="relu", padding="same", data_format="channels_first")(decoded)
     # encoded = layers.Flatten()(encoded)
     # decoded = layers.Dense(32, activation="relu")(encoded)
     # decoded = layers.Dense(1, activation="linear")(encoded)
@@ -109,7 +109,7 @@ def main():
     trainDataSet = tf.data.Dataset.from_generator(
         generator=lambda: generate_batches(trainDataX, trainDataY, batchSize),
         output_types=(np.float32, np.float32),
-        output_shapes=([batchSize,3,128,128], [batchSize,2,128,128])
+        output_shapes=([batchSize,3,128,128], [batchSize,3,128,128])
     )
 
     autoencoder, _ = genModel()
