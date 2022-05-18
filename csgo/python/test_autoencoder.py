@@ -23,14 +23,15 @@ def visualize(preds, reals):
                 b = preds[y][t][x]
                 print(b.shape)
                 
-                s = sum(b.flatten())
-                if s > 0.1:
-                    b *= 255
-                    r *= 255
-                    img = np.dstack((r,g,b))
-                    r_img = Image.fromarray((img).astype(np.uint8))
-                    plt.imshow(r_img)
-                    plt.show()
+                s = sum(r.flatten())
+                if x in [2,1]:
+                    if s > 0.1:
+                        r *= 255
+                        b *= 255
+                        img = np.dstack((r,g,b))
+                        r_img = Image.fromarray((img).astype(np.uint8))
+                        plt.imshow(r_img)
+                        plt.show()
             
     
 def test(datasetPath, labelsPath, checkpointPath):
@@ -42,7 +43,7 @@ def test(datasetPath, labelsPath, checkpointPath):
     testDataSet = tf.data.Dataset.from_generator(
         generator=lambda: generate_batches(testDataFiles, testDataLabels, batchSize),
         output_types=(np.float32, np.float32),
-        output_shapes=([batchSize,3,128,128], [batchSize,2,128,128])
+        output_shapes=([batchSize,3,128,128], [batchSize,3,128,128])
     )
     
     AE,_ = genModel()

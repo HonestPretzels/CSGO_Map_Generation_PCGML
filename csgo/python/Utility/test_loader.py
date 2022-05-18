@@ -21,17 +21,24 @@ def getAllFiles(p):
 #     else:
 #         losses += 1
 # print(wins, losses)
-x = np.load('F:\\CSGO_Map_Generator\\Dev_data_subset\\FullAutoencoderDataSet\\training_data\\data_0_2.npy', allow_pickle=True)
-y = np.load('F:\\CSGO_Map_Generator\\Dev_data_subset\\FullAutoencoderDataSet\\training_labels\\data_0_2.npy', allow_pickle=True)
+x = np.load('F:\\CSGO_Map_Generator\\Dev_data_subset\\FullAutoencoderDataSet\\training_labels_scaled\\data_1_3.npy', allow_pickle=True)
+y = np.load('F:\\CSGO_Map_Generator\\Dev_data_subset\\FullAutoencoderDataSet\\training_data\\data_1_3.npy', allow_pickle=True)
 print(x.shape, y.shape)
 
 # Visualization Code
-for second in range(x.shape[1]):
-    for team in range(x.shape[2]):
-        r = x[0][second][team] * 255
-        g = y[0][second][team] * 255
-        b = np.zeros((128,128))
-        img = np.dstack((r,g,b))
-        r_img = Image.fromarray((img).astype(np.uint8))
-        plt.imshow(r_img)
-        plt.show()
+for split in range(x.shape[0]):
+    for second in range(x.shape[1]):
+        for team in range(x.shape[2]):
+            r = x[split][second][team]
+            print(np.max(r))
+            g = y[split][second][team]
+            b = np.zeros((128,128))
+            
+            s = sum(g.flatten())
+            if s > 1:
+                r *= 255
+                g *= 255
+                img = np.dstack((r,g,b))
+                r_img = Image.fromarray((img).astype(np.uint8))
+                plt.imshow(r_img)
+                plt.show()

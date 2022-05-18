@@ -7,6 +7,7 @@ import sys
 
 def main():
     X = np.load(sys.argv[1])
+    print(X.shape)
     y = np.load(sys.argv[2])
     X = np.reshape(X, (X.shape[0], 30*512))
     y = np.argmax(y, axis=1)

@@ -14,6 +14,8 @@ WEIGHT_CONSTANT = np.ones((BATCH_SIZE, 15, 128, 128), dtype=np.float32)
 # Multiply the Non-main levels by 100 to increase their importance relative to the main floor
 WEIGHT_CONSTANT[:,0:5,:,:] *= 0
 WEIGHT_CONSTANT = tf.convert_to_tensor(WEIGHT_CONSTANT, dtype=tf.float32)
+SEPARATE_TEAMS = True
+
 
 def weighted_MSE(y_true, y_pred):
     # Copy to keep the originals as they are supposed to be
@@ -38,7 +40,11 @@ def generate_batches(dataFiles, labelFiles, batch_size):
         data = np.load(xname, allow_pickle=True)
         data = data.reshape(data.shape[0]*30, 3, 128, 128)
         labels = np.load(yname, allow_pickle=True)
-        labels = labels.reshape(labels.shape[0]*30, 3, 128, 128)
+        if SEPARATE_TEAMS:
+            labels = labels.reshape(labels.shape[0]*30, 3, 128, 128)
+        else:
+            labels = labels.reshape(labels.shape[0]*30, 2, 128, 128)
+            
         maxLength = data.shape[0] - (data.shape[0] % batch_size)
         for i in range(0, maxLength, batch_size):
             x = data[i:i+batch_size]
@@ -66,10 +72,11 @@ def genModel():
     decoded = layers.Conv2DTranspose(32, (3,3), strides=2, activation="relu", data_format="channels_first", padding="same")(decoded)
     decoded = layers.Conv2DTranspose(16, (3,3), strides=2, activation="relu", data_format="channels_first", padding="same")(decoded)
     decoded = layers.Conv2DTranspose(8, (3,3), strides=2, activation="relu", data_format="channels_first", padding="same")(decoded)
-    decoded = layers.Conv2D(3, (3,3), activation="relu", padding="same", data_format="channels_first")(decoded)
-    # encoded = layers.Flatten()(encoded)
-    # decoded = layers.Dense(32, activation="relu")(encoded)
-    # decoded = layers.Dense(1, activation="linear")(encoded)
+    if SEPARATE_TEAMS:
+        decoded = layers.Conv2D(3, (3,3), activation="relu", padding="same", data_format="channels_first")(decoded)
+    else:
+        decoded = layers.Conv2D(2, (3,3), activation="relu", padding="same", data_format="channels_first")(decoded)
+        
     autoencoder = keras.Model(input_img, decoded)
     encoder = keras.Model(input_img, latent)
 
@@ -100,19 +107,25 @@ def main():
 
     trainDataX = [path.join(trainDataDir, f) for f in getAllFiles(trainDataDir)]
     trainDataY = [path.join(trainLabelsDir, f) for f in getAllFiles(trainLabelsDir)]
-
     
     batchSize = BATCH_SIZE # Number of single seconds to look at
 
     
-
-    trainDataSet = tf.data.Dataset.from_generator(
-        generator=lambda: generate_batches(trainDataX, trainDataY, batchSize),
-        output_types=(np.float32, np.float32),
-        output_shapes=([batchSize,3,128,128], [batchSize,3,128,128])
-    )
+    if SEPARATE_TEAMS:
+        trainDataSet = tf.data.Dataset.from_generator(
+            generator=lambda: generate_batches(trainDataX, trainDataY, batchSize),
+            output_types=(np.float32, np.float32),
+            output_shapes=([batchSize,3,128,128], [batchSize,3,128,128])
+        )
+    else:
+            trainDataSet = tf.data.Dataset.from_generator(
+            generator=lambda: generate_batches(trainDataX, trainDataY, batchSize),
+            output_types=(np.float32, np.float32),
+            output_shapes=([batchSize,3,128,128], [batchSize,2,128,128])
+        )
 
     autoencoder, _ = genModel()
+    autoencoder.summary()
     train(autoencoder, trainDataSet, 30, checkpointPath)
 
 if __name__ == "__main__":
