@@ -19,21 +19,23 @@ def main():
         x = np.load(path.join(inputPath,f))
         print(x.shape)
         for split in x:
-            map = split[0][0]
-            # Append Maps
-            exists = False
-            for i in range(len(maps)):
-                map2 = maps[i]
-                if (map == map2).all():
-                    exists = True
-            if not exists:
-                maps.append(map)
-                      
-            for i in range(len(maps)):
-                map2 = maps[i]
-                if (map == map2).all():
-                    label = i
-            labels.append(label)
+            for second in split:
+                map = second[0]
+                # Append Maps
+                exists = False
+                for i in range(len(maps)):
+                    map2 = maps[i]
+                    if (map == map2).all():
+                        exists = True
+                if not exists:
+                    maps.append(map)
+                        
+                for i in range(len(maps)):
+                    map2 = maps[i]
+                    if (map == map2).all():
+                        label = i
+                labels.append(label)
+        print(len(labels))
     labels = np.array(labels)
     for map in maps:
         r_img = Image.fromarray((map).astype(np.uint8))

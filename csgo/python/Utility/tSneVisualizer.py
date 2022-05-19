@@ -6,11 +6,15 @@ import seaborn as sns
 import sys
 
 def main():
+    np.random.seed(1337)
     X = np.load(sys.argv[1])
-    print(X.shape)
     y = np.load(sys.argv[2])
-    X = np.reshape(X, (X.shape[0], 30*512))
-    y = np.argmax(y, axis=1)
+    # y = np.argmax(y, axis=1)
+    # X = np.reshape(X, (X.shape[0],30*512))
+    print(X.shape, y.shape)
+    idxs = np.random.choice(X.shape[0], 20000)
+    X = np.take(X, idxs, axis=0)
+    y = np.take(y, idxs)
     
     print(X.shape, y.shape)
     # Randomly select 1000 samples for performance reasons

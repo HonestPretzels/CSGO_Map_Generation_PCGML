@@ -11,28 +11,39 @@ from train_autoencoder import generate_batches, getAllFiles, genModel
 # gameBreaks refers to the delinieators between the games and is an array of the number of splits in each game
 
 def visualize(preds, reals):
+    avgdiffs1 = 0
+    count1 = 0
+    avgdiffs2 = 0
+    count2 = 0
     for y in range(preds.shape[0]): # Sub sample of states
         for t in range(preds.shape[1]):
             for x in range(preds.shape[2]):
                 # Display the real values
                 r = reals[y][t][x]
-                print(r.shape)
                 # Third layer is empty
                 g = np.zeros((128,128))
                 # Blue for preds
                 b = preds[y][t][x]
-                print(b.shape)
                 
-                s = sum(r.flatten())
-                if x in [2,1]:
-                    if s > 0.1:
-                        r *= 255
-                        b *= 255
-                        img = np.dstack((r,g,b))
-                        r_img = Image.fromarray((img).astype(np.uint8))
-                        plt.imshow(r_img)
-                        plt.show()
-            
+                if x == 1 :
+                    count1 += 1
+                    s = sum(r.flatten())/(128*128)
+                    u = sum(b.flatten())/(128*128)
+                    avgdiffs1 += (s-u)
+                elif x == 2 :
+                    count2 += 1
+                    s = sum(r.flatten())/(128*128)
+                    u = sum(b.flatten())/(128*128)
+                    avgdiffs2 += (s-u)
+                    
+                    # if s > 0.1:
+                    #     r *= 255
+                    #     b *= 255
+                    #     img = np.dstack((r,g,b))
+                    #     r_img = Image.fromarray((img).astype(np.uint8))
+                    #     plt.imshow(r_img)
+                    #     plt.show()
+    print('avg1: %.3f avg2: %.3f'%(avgdiffs1/count1, avgdiffs2/count2))  
     
 def test(datasetPath, labelsPath, checkpointPath):
     testDataFiles = [path.join(datasetPath, f) for f in getAllFiles(datasetPath)]

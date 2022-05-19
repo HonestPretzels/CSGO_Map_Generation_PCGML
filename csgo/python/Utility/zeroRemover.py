@@ -32,8 +32,8 @@ def main():
                 outputSplits.append(split)
                 outputLabels.append(labels)
         print(len(outputSplits), len(outputLabels))
-        np.save(path.join(path.join(outputPath,"Data"),xf), np.array(outputSplits))
-        np.save(path.join(path.join(outputPath,"Labels"),yf), np.array(outputLabels))
+        # np.save(path.join(path.join(outputPath,"Data"),xf), np.array(outputSplits))
+        np.save(path.join(path.join(outputPath,"SeparateTeamLabels"),yf), np.array(outputLabels))
             
 
 if __name__ == "__main__":
