@@ -16,15 +16,10 @@ import (
 // OUTPUT OF THIS PROGRAM IS A SERIES OF 2 NUMPY FILES PER DEMO
 // 1. A log file, this contains the sequence data of what occured in the game. a vector of dimensions length x 10 x 23
 //    the length is the number of seconds in the match, 10 is the number of players, with the first 5 being considered team 1
-//    and the second 5 being considered team 2.
+//    and the second 5 being considered team 2. 23 is the length of the playerstate in that second.
 // 2. A round file, this contains the sequence of round outcomes. A vector of num. rounds x 2 where the first of the two is
 //    the second that the round ended, and the second of the 2 is whether team 1 won or not. This includes an extra round at the
 //    beginning for the knife round and a round at the end as padding which can be ignored.
-
-//TODO:
-// - Use arguments for input and output path of demo
-// - Parse maps somehow
-// - Combine with web scraping
 
 // enum used to index different aspects of state for a player at a given time
 type playerState int

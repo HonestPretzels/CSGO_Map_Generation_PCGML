@@ -1,0 +1,3 @@
+# Early Results
+
+The results here were generated a long time ago from a two headed network that would take in extremely large sequences of data directly as they came out of the demo_parse_loader.py as well as map images. It took a very long time to train and had very poor results so we scrapped this idea to move towards the current autoencoder -> predictor pipeline. The architecture of each attempt is included inside the checkpoint file and the prediction results are shown in testplots. This is not very useful but moreso included as an explanation of we did in the past that didn't work.

@@ -23,6 +23,12 @@ Utility contains all the remaining code. Most of this relates to visualization o
 ## Research Progress
 As this is primarily intended as a research repo for academic purposes I will include a separate document which details the steps I have taken so far in this project in the hopes that it helps future collaborators understand the work done so far.
 
+## Useful Links
+- https://github.com/markus-wa/demoinfocs-golang (demo parsing go package)
+- https://github.com/GorangeNinja/PyVMF (Using python to create csgo maps)
+- https://github.com/kshedden/gonpy (Generating numpy files in go)
+- https://i.imgur.com/kdnLti0.jpeg (Lord Gaben for luck)
+
 ## Installation
 Unfortunately I failed to document all the installation steps I took when I was installing this a year ago so I will do my best to list the necessary steps and packages but this may not be fully complete. All the packages should be installable using ```go get``` or ```pip install```.
 
